@@ -59,7 +59,7 @@ We'll capture this conversion into a function `read_data`. It uses
 [iconv](https://en.wikipedia.org/wiki/Iconv) to convert between encodings. The function
 also allows us to designate the types of the columns in the file we are trying to read.
 
-```{r read_function}
+```{r read-function}
 read_data <- function(f, col_types) {
     raw <- readBin(f, "raw", n = file.size(f))
     x_utf8 <- iconv(list(raw), from = "ISO-8859-1", to = "UTF-8", toRaw = TRUE)[[1]]
@@ -243,6 +243,11 @@ country <- country %>% summarize(cases = sum(cases),
 We also want a lag-column. That is, for each date, we want the count from the
 day preceding it. This allows us to compute the change for each day.
 
+We also add a new column `weekday`, which computes the day of the week. This
+allows us to visualize weekly periodic fluctuations in reporting. We might not
+know the cause of such noise in the data set, but it is still important to
+show patterns when they occur.
+
 ```{r}
 # Create a lag column for cases
 country <- country %>% mutate(previous_cases = lag(cases, order_by=date),
@@ -254,27 +259,55 @@ country <- country %>% mutate(previous_cases = lag(cases, order_by=date),
 At this point, we have readied our data, and can start plotting. First, lets plot
 the number of cases we have in Denmark, and supply a trend-line for the cases
 
-```{r}
+(*Aside:* We use ggplot2 to visualize. ggplot uses a *grammar* of graphical layers
+as its plotting strategy. For instance `p + geom_point()` is a form of "addition"
+where `p` is a plot and `geom_point()` is an x-y scatterplot of points. So the `+`
+means "add another layer on top of our plot."
+
+The other keypoint is that of the `aes(..)` function. This is an *aesthetic*-mapping.
+For example, the expression `aes(x=date, y=cases)` means to map the `date` column to the
+x-axis, and the `cases` column to the y-axis. Likewise, `aes(color = weekday)` maps a
+tables `weekday` column into a "color dimension.")
+
+The trend-line is computed by [Local Regression](https://en.wikipedia.org/wiki/Local_regression),
+or LOESS (LOcally Estimated Scatterplot Smoothing). This is a generalization of a moving
+average over the data. The `span = .3` parameter sets the bandwidth to 30% of the data.
+
+LOESS is a trade-off where we throw computational power at the problem to obtain good
+smoothed trend lines. It would be impossible to do by hand, but we have access to
+modern computers with ample computational power.
+
+```{r country-cases}
 plot_country <- function(p, title, subtitle) {
     p + geom_point(aes(color = weekday), size=2) +
-        geom_smooth(method = 'loess', span = 0.3) +
+        geom_smooth(method = 'loess', span = .3) +
         scale_colour_brewer(palette="Set2") +
         labs(title = title, subtitle = subtitle)
 }
 
-# Write to a file
 p <- ggplot(country, aes(x=date, y=cases))
 plot_country(p, "Trendline for Covid-19 cases in Denmark", "Source: ssi.dk")
 ```
 
-```
-# Write to a file
+We can use the same plot function to handle hospitalizations in Denmark
+
+```{r country-hospitalizations}
 p <- ggplot(country, aes(x=date, y=hospitalizations))
-plot_country(p, "hospitalizations.png", "Covid-19: new hospitalizations in Denmark", "Source: ssi.dk")
+plot_country(p, "Trendline for Covid-19: new hospitalizations in Denmark", "Source: ssi.dk")
+```
 
+And likewise for deaths
+
+```{r country-deaths}
 p <- ggplot(country, aes(x=date, y=deaths))
-plot_country(p, "deaths.png", "Covid-19: new deaths in Denmark", "Source: ssi.dk")
+plot_country(p, "Trendline for Covid-19: new deaths in Denmark", "Source: ssi.dk")
+```
 
+---
+
+*NOTE: The following is still being written up for the document*
+
+```
 # Plot per weekday
 plot_day_of_week <- function(p, filename, title, subtitle) {
     p + geom_point() +
