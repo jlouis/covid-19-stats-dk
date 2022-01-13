@@ -464,9 +464,11 @@ country &lt;- country %&gt;% summarize(cases = sum(cases),
 <pre class="r"><code># Create a lag column for cases
 country &lt;- country %&gt;% mutate(previous_cases = lag(cases, order_by=date),
                               weekday = lubridate::wday(date, label=TRUE))</code></pre>
+<div id="cases-in-denmark-country-wide" class="section level4">
+<h4>Cases in Denmark, country-wide</h4>
 <p>At this point, we have readied our data, and can start plotting. First, lets plot the number of cases we have in Denmark, and supply a trend-line for the cases</p>
 <pre class="r"><code>plot_country &lt;- function(p, title, subtitle) {
-    p + geom_point(aes(color = weekday), size=3) +
+    p + geom_point(aes(color = weekday), size=2) +
         geom_smooth(method = &#39;loess&#39;, span = 0.3) +
         scale_colour_brewer(palette=&quot;Set2&quot;) +
         labs(title = title, subtitle = subtitle)
@@ -543,6 +545,7 @@ plot_age_cases(p, &quot;weekly_age_cases.png&quot;, &quot;Covid-19 cases per 100
 
 p &lt;- ggplot(weekly, aes(x=week, y=ageGroup, fill=tested_100k))
 plot_age_cases(p, &quot;weekly_age_tested.png&quot;, &quot;Covid-19 tests per 100k in Denmark, by age group&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
+</div>
 </div>
 </div>
 

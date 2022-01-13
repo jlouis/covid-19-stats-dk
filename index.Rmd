@@ -249,12 +249,14 @@ country <- country %>% mutate(previous_cases = lag(cases, order_by=date),
                               weekday = lubridate::wday(date, label=TRUE))
 ```
 
+#### Cases in Denmark, country-wide
+
 At this point, we have readied our data, and can start plotting. First, lets plot
 the number of cases we have in Denmark, and supply a trend-line for the cases
 
 ```{r}
 plot_country <- function(p, title, subtitle) {
-    p + geom_point(aes(color = weekday), size=3) +
+    p + geom_point(aes(color = weekday), size=2) +
         geom_smooth(method = 'loess', span = 0.3) +
         scale_colour_brewer(palette="Set2") +
         labs(title = title, subtitle = subtitle)
