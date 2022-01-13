@@ -1,2 +1,2 @@
 build:
-	R CMD BATCH mk.R
+	Rscript mk.R

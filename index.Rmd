@@ -80,31 +80,69 @@ data <- read_data(file, col_types=cols('Region' = col_factor(),
 data
 ```
 
-# Danish in a file is a miserable situation. Convert into the internets lingua franca,
-# i.e., english:
-data <- data %>% rename(region = Region,
-                        date = Prøvetagningsdato,
-                        gender = Køn, # This might be wrong, because it could also be 'sex'. However, we are going to aggregate it
+We certainly don't want to work with danish-named columns. Rather, we want small
+descriptive names which are easy to type. We send our dataset through a `rename`
+pass for this.
+
+And while we are here, lets also limit ourselves to the columns we are interested
+in. There are some cumulative columns in the dataset, but we are not going to be
+interested in those. So we select the columns we care about.
+
+```{r key_rename}
+data <- data %>% rename(region = 'Region',
+                        date = 'Prøvetagningsdato',
+                        gender = 'Køn', # This might be wrong, because it could also be 'sex'. However, we are going to aggregate it
                         cases = 'Bekræftede tilfælde',
-                        deaths = Døde,
-                        hospitalizations = Indlæggelser)
+                        deaths = 'Døde',
+                        hospitalizations = 'Indlæggelser')
 
 # Cut the cumulative columns away
 data <- data %>% select(region, date, gender, cases, deaths, hospitalizations)
+data
+```
 
-# We are only interested in somewhat recent data. What happened in the past isn't that
-# important
+More data handling. We are interested in somewhat recent data. Covid-19 has been around
+for a while. We are mostly interested in the recent development which is that Delta was dominant,
+and Omicron came into the space. Let's put a low-end cutoff down:
+
+```{r}
 lo_cutoff <- '2021-09-01'
+```
+
+The hi-end of that cutoff, we set to two days before the maximal date in our data set
+
+```{r}
 hi_cutoff <- max(data$date) - days(2)
-data <- data %>% filter(date >= cutoff, date < hi_cutoff)
+```
+
+Rationale: when you have a reported number in the news, it's generally a number from the
+cumulative count. The actual date of testing is often lagging by 24h to 48h. We are interested
+in getting the right test-date, even if it means we have a 2 days lag. Hence, we assume
+that recent data are still "forming". A typical example is that the count for the current
+date is very close to 0, as no tests have come in yet. In 2-3 days time, this number rises
+to the right value, as data is retroactively updated.
+
+Filtering the data set is easy:
+
+```{r summary}
+data <- data %>% filter(date >= lo_cutoff, date < hi_cutoff)
 
 # Put this into the summary
 summary <- data
+summary
+```
 
+### Weekly key data split by age
+
+As in the case with the general data, we can define the file of interest
+
+```{r}
 file <- sprintf("./data/%s/Regionalt_DB/18_fnkt_alder_uge_testede_positive_nyindlagte.csv", date)
-# Parse data, by reading the CSV file, and do column type conversion
-# This makes a lot of later handling easier because we have actual types
-# for the data in our tibble
+```
+
+We can reuse our data reader from before.
+
+```{r}
 data <- read_data(file, col_types=cols(Uge = col_character(), # This will need fixing later
                                        Aldersgruppe = col_factor(),
                                        'Testede pr. 100.000 borgere' = col_double(),
@@ -113,6 +151,7 @@ data <- read_data(file, col_types=cols(Uge = col_character(), # This will need f
                                        'Antal testede' = col_double(),
                                        'Antal positive' = col_double()
                                       ))
+```
 
 # Work on the data, and start fixing. Step 1 is to clean up the column names
 data <- data %>% rename(week = Uge,

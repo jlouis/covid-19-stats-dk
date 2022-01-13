@@ -268,13 +268,8 @@ $(document).ready(function () {
 <li><a href="#ingesting-data">Ingesting data</a>
 <ul>
 <li><a href="#key-numbers">Key Numbers</a></li>
+<li><a href="#weekly-key-data-split-by-age">Weekly key data split by age</a></li>
 </ul></li>
-<li><a href="#danish-in-a-file-is-a-miserable-situation.-convert-into-the-internets-lingua-franca">Danish in a file is a miserable situation. Convert into the internets lingua franca,</a></li>
-<li><a href="#i.e.-english">i.e., english:</a></li>
-<li><a href="#cut-the-cumulative-columns-away">Cut the cumulative columns away</a></li>
-<li><a href="#we-are-only-interested-in-somewhat-recent-data.-what-happened-in-the-past-isnt-that">We are only interested in somewhat recent data. What happened in the past isn’t that</a></li>
-<li><a href="#important">important</a></li>
-<li><a href="#put-this-into-the-summary">Put this into the summary</a></li>
 <li><a href="#work-on-the-data-and-start-fixing.-step-1-is-to-clean-up-the-column-names">Work on the data, and start fixing. Step 1 is to clean up the column names</a></li>
 <li><a href="#next-step-is-to-handle-the-week-column.-define-a-fixup-function">Next step is to handle the week column. Define a fixup function:</a></li>
 <li><a href="#apply-this-to-the-data-set">Apply this to the data set</a></li>
@@ -347,30 +342,73 @@ library(lubridate)</code></pre>
 ## # … with 6,496 more rows, and 3 more variables: Kummuleret antal døde &lt;dbl&gt;,
 ## #   Kummuleret antal bekræftede tilfælde &lt;dbl&gt;,
 ## #   Kummuleret antal indlæggelser &lt;dbl&gt;</code></pre>
+<p>We certainly don’t want to work with danish-named columns. Rather, we want small descriptive names which are easy to type. We send our dataset through a <code>rename</code> pass for this.</p>
+<p>And while we are here, lets also limit ourselves to the columns we are interested in. There are some cumulative columns in the dataset, but we are not going to be interested in those. So we select the columns we care about.</p>
+<pre class="r"><code>data &lt;- data %&gt;% rename(region = &#39;Region&#39;,
+                        date = &#39;Prøvetagningsdato&#39;,
+                        gender = &#39;Køn&#39;, # This might be wrong, because it could also be &#39;sex&#39;. However, we are going to aggregate it
+                        cases = &#39;Bekræftede tilfælde&#39;,
+                        deaths = &#39;Døde&#39;,
+                        hospitalizations = &#39;Indlæggelser&#39;)
+
+# Cut the cumulative columns away
+data &lt;- data %&gt;% select(region, date, gender, cases, deaths, hospitalizations)
+data</code></pre>
+<pre><code>## # A tibble: 6,506 × 6
+##    region      date       gender cases deaths hospitalizations
+##    &lt;fct&gt;       &lt;date&gt;     &lt;fct&gt;  &lt;dbl&gt;  &lt;dbl&gt;            &lt;dbl&gt;
+##  1 Sjælland    2020-02-26 M          1      0                0
+##  2 Hovedstaden 2020-02-27 M          1      0                0
+##  3 Midtjylland 2020-02-28 M          1      0                0
+##  4 Hovedstaden 2020-03-01 M          1      0                1
+##  5 Hovedstaden 2020-03-02 M          2      0                1
+##  6 Sjælland    2020-03-02 M          1      0                0
+##  7 Syddanmark  2020-03-02 M          1      0                0
+##  8 Hovedstaden 2020-03-03 F          1      0                0
+##  9 Hovedstaden 2020-03-03 M          3      0                1
+## 10 Hovedstaden 2020-03-04 M          2      0                0
+## # … with 6,496 more rows</code></pre>
+<p>More data handling. We are interested in somewhat recent data. Covid-19 has been around for a while. We are mostly interested in the recent development which is that Delta was dominant, and Omicron came into the space. Let’s put a low-end cutoff down:</p>
+<pre class="r"><code>lo_cutoff &lt;- &#39;2021-09-01&#39;</code></pre>
+<p>The hi-end of that cutoff, we set to two days before the maximal date in our data set</p>
+<pre class="r"><code>hi_cutoff &lt;- max(data$date) - days(2)</code></pre>
+<p>Rationale: when you have a reported number in the news, it’s generally a number from the cumulative count. The actual date of testing is often lagging by 24h to 48h. We are interested in getting the right test-date, even if it means we have a 2 days lag. Hence, we assume that recent data are still “forming”. A typical example is that the count for the current date is very close to 0, as no tests have come in yet. In 2-3 days time, this number rises to the right value, as data is retroactively updated.</p>
+<p>Filtering the data set is easy:</p>
+<pre class="r"><code>data &lt;- data %&gt;% filter(date &gt;= lo_cutoff, date &lt; hi_cutoff)
+
+# Put this into the summary
+summary &lt;- data
+summary</code></pre>
+<pre><code>## # A tibble: 1,310 × 6
+##    region      date       gender cases deaths hospitalizations
+##    &lt;fct&gt;       &lt;date&gt;     &lt;fct&gt;  &lt;dbl&gt;  &lt;dbl&gt;            &lt;dbl&gt;
+##  1 Hovedstaden 2021-09-01 F        210      0                7
+##  2 Midtjylland 2021-09-01 F         65      0                0
+##  3 Nordjylland 2021-09-01 F         22      0                4
+##  4 Sjælland    2021-09-01 F         41      0                0
+##  5 Syddanmark  2021-09-01 F         46      0                1
+##  6 Hovedstaden 2021-09-01 M        184      2                8
+##  7 Midtjylland 2021-09-01 M         49      0                1
+##  8 Nordjylland 2021-09-01 M         16      1                2
+##  9 Sjælland    2021-09-01 M         37      0                3
+## 10 Syddanmark  2021-09-01 M         41      0                1
+## # … with 1,300 more rows</code></pre>
 </div>
+<div id="weekly-key-data-split-by-age" class="section level3">
+<h3>Weekly key data split by age</h3>
+<p>As in the case with the general data, we can define the file of interest</p>
+<pre class="r"><code>file &lt;- sprintf(&quot;./data/%s/Regionalt_DB/18_fnkt_alder_uge_testede_positive_nyindlagte.csv&quot;, date)</code></pre>
+<p>We can reuse our data reader from before.</p>
+<pre class="r"><code>data &lt;- read_data(file, col_types=cols(Uge = col_character(), # This will need fixing later
+                                       Aldersgruppe = col_factor(),
+                                       &#39;Testede pr. 100.000 borgere&#39; = col_double(),
+                                       &#39;Positive pr. 100.000 borgere&#39; = col_double(),
+                                       &#39;Nyindlagte pr. 100.000 borgere&#39; = col_double(),
+                                       &#39;Antal testede&#39; = col_double(),
+                                       &#39;Antal positive&#39; = col_double()
+                                      ))</code></pre>
+<pre><code>## ℹ Using &quot;&#39;,&#39;&quot; as decimal and &quot;&#39;.&#39;&quot; as grouping mark. Use `read_delim()` for more control.</code></pre>
 </div>
-<div id="danish-in-a-file-is-a-miserable-situation.-convert-into-the-internets-lingua-franca" class="section level1">
-<h1>Danish in a file is a miserable situation. Convert into the internets lingua franca,</h1>
-</div>
-<div id="i.e.-english" class="section level1">
-<h1>i.e., english:</h1>
-<p>data &lt;- data %&gt;% rename(region = Region, date = Prøvetagningsdato, gender = Køn, # This might be wrong, because it could also be ‘sex’. However, we are going to aggregate it cases = ‘Bekræftede tilfælde’, deaths = Døde, hospitalizations = Indlæggelser)</p>
-</div>
-<div id="cut-the-cumulative-columns-away" class="section level1">
-<h1>Cut the cumulative columns away</h1>
-<p>data &lt;- data %&gt;% select(region, date, gender, cases, deaths, hospitalizations)</p>
-</div>
-<div id="we-are-only-interested-in-somewhat-recent-data.-what-happened-in-the-past-isnt-that" class="section level1">
-<h1>We are only interested in somewhat recent data. What happened in the past isn’t that</h1>
-</div>
-<div id="important" class="section level1">
-<h1>important</h1>
-<p>lo_cutoff &lt;- ‘2021-09-01’ hi_cutoff &lt;- max(data$date) - days(2) data &lt;- data %&gt;% filter(date &gt;= cutoff, date &lt; hi_cutoff)</p>
-</div>
-<div id="put-this-into-the-summary" class="section level1">
-<h1>Put this into the summary</h1>
-<p>summary &lt;- data</p>
-<p>file &lt;- sprintf(“./data/%s/Regionalt_DB/18_fnkt_alder_uge_testede_positive_nyindlagte.csv”, date) # Parse data, by reading the CSV file, and do column type conversion # This makes a lot of later handling easier because we have actual types # for the data in our tibble data &lt;- read_data(file, col_types=cols(Uge = col_character(), # This will need fixing later Aldersgruppe = col_factor(), ‘Testede pr. 100.000 borgere’ = col_double(), ‘Positive pr. 100.000 borgere’ = col_double(), ‘Nyindlagte pr. 100.000 borgere’ = col_double(), ‘Antal testede’ = col_double(), ‘Antal positive’ = col_double() ))</p>
 </div>
 <div id="work-on-the-data-and-start-fixing.-step-1-is-to-clean-up-the-column-names" class="section level1">
 <h1>Work on the data, and start fixing. Step 1 is to clean up the column names</h1>
