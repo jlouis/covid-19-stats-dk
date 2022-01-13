@@ -1,0 +1,234 @@
+---
+title: "Covid-19 Stats for Denmark"
+date: 2022-01-13
+output:
+  html_document:
+    toc: true
+---
+
+## Initial setup
+
+To process data sets from SSI, we'll use R, and we'll need some packages for doing so. We'll
+load `tidyverse` to load a large set of R packages, and `lubridate` to load in date-handling,
+since this will be very useful.
+
+You can grab SSI's data from [their homepage](https://covid19.ssi.dk/overvagningsdata/download-fil-med-overvaagningdata)
+
+```{r setup, include = TRUE, echo = TRUE, message = FALSE}
+library(tidyverse)
+library(lubridate)
+```
+
+SSI's data is in a zip file. We unpack this zip file into a directory of the
+general form `YYYY-MM-DD`. Lets set up a name for the current directory we
+want to grab data from
+
+```{r constants}
+date <- "2022-01-12"
+```
+
+## Ingesting data
+
+SSIs data are in "CSV" files. The CSV format isn't well specified, and the variant
+used by SSI is a variant in which the `;` character is used as a separator. This is
+relatively common in countries which uses the `,` as a separator in numbers, in order
+to avoid conflicts. R's `readr` package have a way to handle this particular CSV variant.
+
+Furthermore, the files contain danish characters. They are encoded in the ISO8859-1(5)
+format, so we'll have to do something about this. The obvious way is to turn the
+encoding into UTF-8, which is the modern encoding of Unicode. Once transformed into
+UTF-8, we can read the data into R.
+
+We'll capture this conversion into a function `read_data`. It uses
+[iconv](https://en.wikipedia.org/wiki/Iconv) to convert between encodings. The function
+also allows us to designate the types of the columns in the file we are trying to read.
+
+```{r read_function}
+read_data <- function(f, col_types) {
+    raw <- readBin(f, "raw", n = file.size(f))
+    x_utf8 <- iconv(list(raw), from = "ISO-8859-1", to = "UTF-8", toRaw = TRUE)[[1]]
+
+    # CSV variant 2 uses ; as the separator, among other adaptations
+    res <- read_csv2(x_utf8, col_types=col_types)
+    return(res)
+}
+```
+
+### Key Numbers
+
+SSI provides a file with key numbers from the Covid-19 data gathered by them. This file is updated 5
+days a week. We already unzipped the file in a directory, so lets expand our `date` constant and get a
+file name
+
+```{r}
+file <- sprintf("./data/%s/Regionalt_DB/03_bekraeftede_tilfaelde_doede_indlagte_pr_dag_pr_koen.csv", date)
+```
+
+We can read this file via our function. It will return a so-called `tibble` which is a table, or data frame,
+of the data in the file. We also provide initial types for each of the columns. In CSV, data is untyped.
+We would like to add type information to columns because it simplifies our later plotting. Many tools
+know how to handle data by its type, so we designate things up front.
+
+```{r}
+data <- read_data(file, col_types=cols('Region' = col_factor(),
+                                       'Prøvetagningsdato' = col_date(),
+                                       'Køn' = col_factor(),
+                                       'Bekræftede tilfælde' = col_double(),
+                                       'Døde' = col_double(),
+                                       'Indlæggelser' = col_double()
+                                      ))
+data
+```
+
+# Danish in a file is a miserable situation. Convert into the internets lingua franca,
+# i.e., english:
+data <- data %>% rename(region = Region,
+                        date = Prøvetagningsdato,
+                        gender = Køn, # This might be wrong, because it could also be 'sex'. However, we are going to aggregate it
+                        cases = 'Bekræftede tilfælde',
+                        deaths = Døde,
+                        hospitalizations = Indlæggelser)
+
+# Cut the cumulative columns away
+data <- data %>% select(region, date, gender, cases, deaths, hospitalizations)
+
+# We are only interested in somewhat recent data. What happened in the past isn't that
+# important
+lo_cutoff <- '2021-09-01'
+hi_cutoff <- max(data$date) - days(2)
+data <- data %>% filter(date >= cutoff, date < hi_cutoff)
+
+# Put this into the summary
+summary <- data
+
+file <- sprintf("./data/%s/Regionalt_DB/18_fnkt_alder_uge_testede_positive_nyindlagte.csv", date)
+# Parse data, by reading the CSV file, and do column type conversion
+# This makes a lot of later handling easier because we have actual types
+# for the data in our tibble
+data <- read_data(file, col_types=cols(Uge = col_character(), # This will need fixing later
+                                       Aldersgruppe = col_factor(),
+                                       'Testede pr. 100.000 borgere' = col_double(),
+                                       'Positive pr. 100.000 borgere' = col_double(),
+                                       'Nyindlagte pr. 100.000 borgere' = col_double(),
+                                       'Antal testede' = col_double(),
+                                       'Antal positive' = col_double()
+                                      ))
+
+# Work on the data, and start fixing. Step 1 is to clean up the column names
+data <- data %>% rename(week = Uge,
+                        ageGroup = Aldersgruppe,
+                        tested_100k = 'Testede pr. 100.000 borgere',
+                        cases_100k = 'Positive pr. 100.000 borgere',
+                        hospitalized_100k = 'Nyindlagte pr. 100.000 borgere',
+                        tested = 'Antal testede',
+                        cases = 'Antal positive')
+
+# Next step is to handle the week column. Define a fixup function:
+fixup_week <- function(s) {
+    # For strptime to do its work correctly, it must know a day of the week. Here, we
+    # use the 1st day of the week as a anchoring point, but in principle any day could
+    # have been used.
+    x <- sprintf("%s-1", s)
+    res <- strptime(x, format="%Y-W%W-%u")
+    return(as.POSIXct(res))
+}
+
+# Apply this to the data set
+data <- data %>% mutate(week = fixup_week(week))
+data <- data %>% filter(week >= cutoff)
+
+# Shove this into a new variable for our use
+weekly <- data
+
+### COUNTRY-WIDE data
+
+# Group by date, so we can get rid of region/gender
+country <- summary %>% group_by(date)
+# Summarize the data by counting
+country <- country %>% summarize(cases = sum(cases),
+                                 deaths = sum(deaths),
+                                 hospitalizations = sum(hospitalizations))
+
+# Create a lag column for cases
+country <- country %>% mutate(previous_cases = lag(cases, order_by=date),
+                              weekday = lubridate::wday(date, label=TRUE))
+
+plot_country <- function(p, filename, title, subtitle) {
+    p + geom_point(aes(color = weekday), size=3) +
+        geom_smooth(method = 'loess', span = 0.3) +
+        scale_colour_brewer(palette="Set2") +
+        labs(title = title, subtitle = subtitle)
+
+    ggsave(filename, height=9, width=16, dpi=120)
+}
+
+# Write to a file
+p <- ggplot(country, aes(x=date, y=cases))
+plot_country(p, "cases.png", "Covid-19 cases in Denmark", "Source: ssi.dk")
+
+# Write to a file
+p <- ggplot(country, aes(x=date, y=hospitalizations))
+plot_country(p, "hospitalizations.png", "Covid-19: new hospitalizations in Denmark", "Source: ssi.dk")
+
+p <- ggplot(country, aes(x=date, y=deaths))
+plot_country(p, "deaths.png", "Covid-19: new deaths in Denmark", "Source: ssi.dk")
+
+# Plot per weekday
+plot_day_of_week <- function(p, filename, title, subtitle) {
+    p + geom_point() +
+        geom_jitter() +
+        scale_colour_brewer(palette="Set1") +
+        stat_boxplot(aes(fill=weekday, color=weekday), alpha=0.3) +
+        labs(title = title, subtitle = subtitle)
+
+    ggsave(filename, height=9, width=16, dpi=120)
+}
+
+p <- ggplot(country, aes(x=weekday, y=(cases - previous_cases)))
+plot_day_of_week(p, "cases_weekday.png", "New Covid-19 cases in Denmark, day of week (2021-09-01 to 2022-01-10)", "Source: ssi.dk")
+
+# Lagged data computes the difference to the day before.
+plot_country_lag <- function(p, filename, title, subtitle) {
+    p + geom_point(size=3) +
+        scale_colour_brewer(palette="Set2") +
+        labs(title = title, subtitle = subtitle)
+
+    ggsave(filename, height=9, width=16, dpi=120)
+}
+
+p <- ggplot(country, aes(x=date, y=(cases - previous_cases), color=weekday))
+plot_country_lag(p, "cases_lag.png", "Covid-19 cases change per day, Denmark", "Source: ssi.dk")
+
+### REGIONAL DATA
+## Generally follows the same structure as for the country-wide cases.
+
+regions <- summary %>% group_by(date, region)
+regions <- regions %>% summarize(cases = sum(cases), deaths = sum(deaths), hospitalizations = sum(hospitalizations))
+regions <- regions %>% mutate(weekday = lubridate::wday(date, label=TRUE), order_by=date)
+
+plot_regions <- function(p, filename, title, subtitle) {
+    p + geom_point(aes(color=region), size=2) +
+        geom_smooth(method = 'loess', span = 0.3) +
+        facet_grid(rows=vars(region)) +
+        scale_colour_brewer(palette="Set2") +
+        labs(title = title, subtitle = subtitle)
+
+    ggsave(filename, height=9, width=16, dpi=120)
+}
+
+p <- ggplot(regions, aes(x=date, y=cases))
+plot_regions(p, "regions.png", "Covid-19 cases in Denmark, per region", "Source: ssi.dk")
+
+plot_age_cases <- function(p, filename, title, subtitle) {
+    p + geom_raster() +
+        scale_fill_continuous(type = "viridis") +
+        labs(title = title, subtitle = subtitle)
+
+    ggsave(filename, height=9, width=16, dpi=120)
+}
+
+p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=cases_100k))
+plot_age_cases(p, "weekly_age_cases.png", "Covid-19 cases per 100k in Denmark, by age group", "Source: ssi.dk")
+
+p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=tested_100k))
+plot_age_cases(p, "weekly_age_tested.png", "Covid-19 tests per 100k in Denmark, by age group", "Source: ssi.dk")

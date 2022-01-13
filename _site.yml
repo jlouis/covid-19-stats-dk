@@ -1,0 +1,6 @@
+name: "Covid-19-Stats-Denmark"
+navbar:
+  title: "Covid-19 Stats for Denmark"
+  left:
+    - text: "Home"
+      href: index.html
