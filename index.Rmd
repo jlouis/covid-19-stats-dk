@@ -223,9 +223,7 @@ Finally, lets use a good name for this dataset (tibble):
 weekly <- data
 ```
 
-## Plots
-
-### General key data plotting
+## Country-wide data
 
 First, lets analyze the country-wide data set. Because data is given by each region,
 we must first summarize the data by summing the data from each region per day. This
@@ -254,7 +252,7 @@ country <- country %>% mutate(previous_cases = lag(cases, order_by=date),
                               weekday = lubridate::wday(date, label=TRUE))
 ```
 
-#### Cases in Denmark, country-wide
+### Country-wide visualizations
 
 At this point, we have readied our data, and can start plotting. First, lets plot
 the number of cases we have in Denmark, and supply a trend-line for the cases
@@ -296,11 +294,72 @@ p <- ggplot(country, aes(x=date, y=hospitalizations))
 plot_country(p, "Trendline for Covid-19: new hospitalizations in Denmark", "Source: ssi.dk")
 ```
 
-And likewise for deaths
+And likewise for deaths. Since deaths tend to have a larger lag before reporting, we don't
+report the last 5 days
 
 ```{r country-deaths}
-p <- ggplot(country, aes(x=date, y=deaths))
+hi_cutoff_deaths <- max(country$date) - days(4)
+p <- ggplot(country %>% filter(date < hi_cutoff_deaths), aes(x=date, y=deaths))
 plot_country(p, "Trendline for Covid-19: new deaths in Denmark", "Source: ssi.dk")
+```
+
+The next plot computes the *change* from the day before to the next day. A positive
+number means "There were this many more cases today." A negative number means "There
+were this fewer cases today." This shows how data is getting more noisy once Omicron
+takes over and more tests are being made.
+
+As we shall see, this noise mostly comes from a single region in Denmark.
+
+```{r country-lagged}
+# Lagged data computes the difference to the day before.
+plot_country_lag <- function(p, title, subtitle) {
+    p + geom_point(size=1.5) +
+        scale_colour_brewer(palette="Set2") +
+        labs(title = title, subtitle = subtitle)
+}
+
+p <- ggplot(country, aes(x=date, y=(cases - previous_cases), color=weekday))
+plot_country_lag(p, "As Omicron took over, noise entered data in Denmark", "Source: ssi.dk")
+```
+
+Because there are some clear day-of-week structure in the data set, it's worth
+looking a bit into this. In particular:
+
+* `Monday` tends to have large positive change.
+* `Wednesday` tend to have a smaller decrease.
+
+```{r country-weekday}
+plot_day_of_week <- function(p, title, subtitle) {
+    p + scale_colour_brewer(palette="Set1") +
+        stat_boxplot(aes(fill=weekday, color=weekday), alpha=0.3) +
+        labs(title = title, subtitle = subtitle)
+}
+
+p <- ggplot(country, aes(x=weekday, y=(cases - previous_cases)))
+plot_day_of_week(p, "Some days of the week has clear over/under-representation", "Source: ssi.dk")
+```
+
+## Regional data
+
+```{r regional-handling}
+regions <- summary %>% group_by(date, region)
+regions <- regions %>% summarize(cases = sum(cases), deaths = sum(deaths), hospitalizations = sum(hospitalizations))
+regions <- regions %>% mutate(weekday = lubridate::wday(date, label=TRUE), order_by=date)
+```
+
+### Regional visualizations
+
+```{r regional-cases}
+plot_regions <- function(p, title, subtitle) {
+    p + geom_point(aes(color=region)) +
+        geom_smooth(method = 'loess', span = 0.3) +
+        facet_grid(rows=vars(region)) +
+        scale_colour_brewer(palette="Set2") +
+        labs(title = title, subtitle = subtitle)
+}
+
+p <- ggplot(regions, aes(x=date, y=cases))
+plot_regions(p, "Copenhagen-general area (Hovedstaden) contributes most of the noise", "Source: ssi.dk")
 ```
 
 ---
@@ -308,52 +367,6 @@ plot_country(p, "Trendline for Covid-19: new deaths in Denmark", "Source: ssi.dk
 *NOTE: The following is still being written up for the document*
 
 ```
-# Plot per weekday
-plot_day_of_week <- function(p, filename, title, subtitle) {
-    p + geom_point() +
-        geom_jitter() +
-        scale_colour_brewer(palette="Set1") +
-        stat_boxplot(aes(fill=weekday, color=weekday), alpha=0.3) +
-        labs(title = title, subtitle = subtitle)
-
-    ggsave(filename, height=9, width=16, dpi=120)
-}
-
-p <- ggplot(country, aes(x=weekday, y=(cases - previous_cases)))
-plot_day_of_week(p, "cases_weekday.png", "New Covid-19 cases in Denmark, day of week (2021-09-01 to 2022-01-10)", "Source: ssi.dk")
-
-# Lagged data computes the difference to the day before.
-plot_country_lag <- function(p, filename, title, subtitle) {
-    p + geom_point(size=3) +
-        scale_colour_brewer(palette="Set2") +
-        labs(title = title, subtitle = subtitle)
-
-    ggsave(filename, height=9, width=16, dpi=120)
-}
-
-p <- ggplot(country, aes(x=date, y=(cases - previous_cases), color=weekday))
-plot_country_lag(p, "cases_lag.png", "Covid-19 cases change per day, Denmark", "Source: ssi.dk")
-
-### REGIONAL DATA
-## Generally follows the same structure as for the country-wide cases.
-
-regions <- summary %>% group_by(date, region)
-regions <- regions %>% summarize(cases = sum(cases), deaths = sum(deaths), hospitalizations = sum(hospitalizations))
-regions <- regions %>% mutate(weekday = lubridate::wday(date, label=TRUE), order_by=date)
-
-plot_regions <- function(p, filename, title, subtitle) {
-    p + geom_point(aes(color=region), size=2) +
-        geom_smooth(method = 'loess', span = 0.3) +
-        facet_grid(rows=vars(region)) +
-        scale_colour_brewer(palette="Set2") +
-        labs(title = title, subtitle = subtitle)
-
-    ggsave(filename, height=9, width=16, dpi=120)
-}
-
-p <- ggplot(regions, aes(x=date, y=cases))
-plot_regions(p, "regions.png", "Covid-19 cases in Denmark, per region", "Source: ssi.dk")
-
 plot_age_cases <- function(p, filename, title, subtitle) {
     p + geom_raster() +
         scale_fill_continuous(type = "viridis") +

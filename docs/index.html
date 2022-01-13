@@ -271,9 +271,13 @@ $(document).ready(function () {
 <li><a href="#key-numbers">Key Numbers</a></li>
 <li><a href="#weekly-key-data-split-by-age">Weekly key data split by age</a></li>
 </ul></li>
-<li><a href="#plots">Plots</a>
+<li><a href="#country-wide-data">Country-wide data</a>
 <ul>
-<li><a href="#general-key-data-plotting">General key data plotting</a></li>
+<li><a href="#country-wide-visualizations">Country-wide visualizations</a></li>
+</ul></li>
+<li><a href="#regional-data">Regional data</a>
+<ul>
+<li><a href="#regional-visualizations">Regional visualizations</a></li>
 </ul></li>
 </ul>
 </div>
@@ -449,10 +453,8 @@ data &lt;- data %&gt;% filter(week &gt;= lo_cutoff)</code></pre>
 <pre class="r"><code>weekly &lt;- data</code></pre>
 </div>
 </div>
-<div id="plots" class="section level2">
-<h2>Plots</h2>
-<div id="general-key-data-plotting" class="section level3">
-<h3>General key data plotting</h3>
+<div id="country-wide-data" class="section level2">
+<h2>Country-wide data</h2>
 <p>First, lets analyze the country-wide data set. Because data is given by each region, we must first summarize the data by summing the data from each region per day. This means we group by the <code>date</code> and then sum</p>
 <pre class="r"><code># Group by date, so we can get rid of region/gender
 country &lt;- summary %&gt;% group_by(date)
@@ -465,8 +467,8 @@ country &lt;- country %&gt;% summarize(cases = sum(cases),
 <pre class="r"><code># Create a lag column for cases
 country &lt;- country %&gt;% mutate(previous_cases = lag(cases, order_by=date),
                               weekday = lubridate::wday(date, label=TRUE))</code></pre>
-<div id="cases-in-denmark-country-wide" class="section level4">
-<h4>Cases in Denmark, country-wide</h4>
+<div id="country-wide-visualizations" class="section level3">
+<h3>Country-wide visualizations</h3>
 <p>At this point, we have readied our data, and can start plotting. First, lets plot the number of cases we have in Denmark, and supply a trend-line for the cases</p>
 <p>(<em>Aside:</em> We use ggplot2 to visualize. ggplot uses a <em>grammar</em> of graphical layers as its plotting strategy. For instance <code>p + geom_point()</code> is a form of “addition” where <code>p</code> is a plot and <code>geom_point()</code> is an x-y scatterplot of points. So the <code>+</code> means “add another layer on top of our plot.”</p>
 <p>The other keypoint is that of the <code>aes(..)</code> function. This is an <em>aesthetic</em>-mapping. For example, the expression <code>aes(x=date, y=cases)</code> means to map the <code>date</code> column to the x-axis, and the <code>cases</code> column to the y-axis. Likewise, <code>aes(color = weekday)</code> maps a tables <code>weekday</code> column into a “color dimension.”)</p>
@@ -488,60 +490,65 @@ plot_country(p, &quot;Trendline for Covid-19 cases in Denmark&quot;, &quot;Sourc
 plot_country(p, &quot;Trendline for Covid-19: new hospitalizations in Denmark&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
 <pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
 <p><img src="index_files/figure-html/country-hospitalizations-1.png" width="672" /></p>
-<p>And likewise for deaths</p>
-<pre class="r"><code>p &lt;- ggplot(country, aes(x=date, y=deaths))
+<p>And likewise for deaths. Since deaths tend to have a larger lag before reporting, we don’t report the last 5 days</p>
+<pre class="r"><code>hi_cutoff_deaths &lt;- max(country$date) - days(4)
+p &lt;- ggplot(country %&gt;% filter(date &lt; hi_cutoff_deaths), aes(x=date, y=deaths))
 plot_country(p, &quot;Trendline for Covid-19: new deaths in Denmark&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
 <pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
 <p><img src="index_files/figure-html/country-deaths-1.png" width="672" /></p>
-<hr />
-<p><em>NOTE: The following is still being written up for the document</em></p>
-<pre><code># Plot per weekday
-plot_day_of_week &lt;- function(p, filename, title, subtitle) {
-    p + geom_point() +
-        geom_jitter() +
-        scale_colour_brewer(palette=&quot;Set1&quot;) +
-        stat_boxplot(aes(fill=weekday, color=weekday), alpha=0.3) +
-        labs(title = title, subtitle = subtitle)
-
-    ggsave(filename, height=9, width=16, dpi=120)
-}
-
-p &lt;- ggplot(country, aes(x=weekday, y=(cases - previous_cases)))
-plot_day_of_week(p, &quot;cases_weekday.png&quot;, &quot;New Covid-19 cases in Denmark, day of week (2021-09-01 to 2022-01-10)&quot;, &quot;Source: ssi.dk&quot;)
-
-# Lagged data computes the difference to the day before.
-plot_country_lag &lt;- function(p, filename, title, subtitle) {
-    p + geom_point(size=3) +
+<p>The next plot computes the <em>change</em> from the day before to the next day. A positive number means “There were this many more cases today.” A negative number means “There were this fewer cases today.” This shows how data is getting more noisy once Omicron takes over and more tests are being made.</p>
+<p>As we shall see, this noise mostly comes from a single region in Denmark.</p>
+<pre class="r"><code># Lagged data computes the difference to the day before.
+plot_country_lag &lt;- function(p, title, subtitle) {
+    p + geom_point(size=1.5) +
         scale_colour_brewer(palette=&quot;Set2&quot;) +
         labs(title = title, subtitle = subtitle)
-
-    ggsave(filename, height=9, width=16, dpi=120)
 }
 
 p &lt;- ggplot(country, aes(x=date, y=(cases - previous_cases), color=weekday))
-plot_country_lag(p, &quot;cases_lag.png&quot;, &quot;Covid-19 cases change per day, Denmark&quot;, &quot;Source: ssi.dk&quot;)
+plot_country_lag(p, &quot;As Omicron took over, noise entered data in Denmark&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
+<pre><code>## Warning: Removed 1 rows containing missing values (geom_point).</code></pre>
+<p><img src="index_files/figure-html/country-lagged-1.png" width="672" /></p>
+<p>Because there are some clear day-of-week structure in the data set, it’s worth looking a bit into this. In particular:</p>
+<ul>
+<li><code>Monday</code> tends to have large positive change.</li>
+<li><code>Wednesday</code> tend to have a smaller decrease.</li>
+</ul>
+<pre class="r"><code>plot_day_of_week &lt;- function(p, title, subtitle) {
+    p + scale_colour_brewer(palette=&quot;Set1&quot;) +
+        stat_boxplot(aes(fill=weekday, color=weekday), alpha=0.3) +
+        labs(title = title, subtitle = subtitle)
+}
 
-### REGIONAL DATA
-## Generally follows the same structure as for the country-wide cases.
-
-regions &lt;- summary %&gt;% group_by(date, region)
-regions &lt;- regions %&gt;% summarize(cases = sum(cases), deaths = sum(deaths), hospitalizations = sum(hospitalizations))
-regions &lt;- regions %&gt;% mutate(weekday = lubridate::wday(date, label=TRUE), order_by=date)
-
-plot_regions &lt;- function(p, filename, title, subtitle) {
-    p + geom_point(aes(color=region), size=2) +
+p &lt;- ggplot(country, aes(x=weekday, y=(cases - previous_cases)))
+plot_day_of_week(p, &quot;Some days of the week has clear over/under-representation&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
+<pre><code>## Warning: Removed 1 rows containing non-finite values (stat_boxplot).</code></pre>
+<p><img src="index_files/figure-html/country-weekday-1.png" width="672" /></p>
+</div>
+</div>
+<div id="regional-data" class="section level2">
+<h2>Regional data</h2>
+<pre class="r"><code>regions &lt;- summary %&gt;% group_by(date, region)
+regions &lt;- regions %&gt;% summarize(cases = sum(cases), deaths = sum(deaths), hospitalizations = sum(hospitalizations))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;date&#39;. You can override using the `.groups` argument.</code></pre>
+<pre class="r"><code>regions &lt;- regions %&gt;% mutate(weekday = lubridate::wday(date, label=TRUE), order_by=date)</code></pre>
+<div id="regional-visualizations" class="section level3">
+<h3>Regional visualizations</h3>
+<pre class="r"><code>plot_regions &lt;- function(p, title, subtitle) {
+    p + geom_point(aes(color=region)) +
         geom_smooth(method = &#39;loess&#39;, span = 0.3) +
         facet_grid(rows=vars(region)) +
         scale_colour_brewer(palette=&quot;Set2&quot;) +
         labs(title = title, subtitle = subtitle)
-
-    ggsave(filename, height=9, width=16, dpi=120)
 }
 
 p &lt;- ggplot(regions, aes(x=date, y=cases))
-plot_regions(p, &quot;regions.png&quot;, &quot;Covid-19 cases in Denmark, per region&quot;, &quot;Source: ssi.dk&quot;)
-
-plot_age_cases &lt;- function(p, filename, title, subtitle) {
+plot_regions(p, &quot;Copenhagen-general area (Hovedstaden) contributes most of the noise&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="index_files/figure-html/regional-cases-1.png" width="672" /></p>
+<hr />
+<p><em>NOTE: The following is still being written up for the document</em></p>
+<pre><code>plot_age_cases &lt;- function(p, filename, title, subtitle) {
     p + geom_raster() +
         scale_fill_continuous(type = &quot;viridis&quot;) +
         labs(title = title, subtitle = subtitle)
@@ -554,7 +561,6 @@ plot_age_cases(p, &quot;weekly_age_cases.png&quot;, &quot;Covid-19 cases per 100
 
 p &lt;- ggplot(weekly, aes(x=week, y=ageGroup, fill=tested_100k))
 plot_age_cases(p, &quot;weekly_age_tested.png&quot;, &quot;Covid-19 tests per 100k in Denmark, by age group&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
-</div>
 </div>
 </div>
 
