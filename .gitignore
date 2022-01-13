@@ -1,7 +1,5 @@
 .RData
 .envrc
 mk.Rout
-_site/Makefile
-_site/shell.nix
 data/*
-_site/data/*
+

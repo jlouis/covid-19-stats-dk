@@ -1,4 +1,6 @@
 name: "Covid-19-Stats-Denmark"
+output_dir: "docs"
+exclude: ["data", "mk.Rout", "Makefile", "shell.nix"]
 navbar:
   title: "Covid-19 Stats for Denmark"
   left:
