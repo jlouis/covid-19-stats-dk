@@ -264,40 +264,35 @@ $(document).ready(function () {
 
 <div id="TOC">
 <ul>
+<li><a href="#strategy">Strategy</a></li>
 <li><a href="#initial-setup">Initial setup</a></li>
 <li><a href="#ingesting-data">Ingesting data</a>
 <ul>
 <li><a href="#key-numbers">Key Numbers</a></li>
 <li><a href="#weekly-key-data-split-by-age">Weekly key data split by age</a></li>
 </ul></li>
-<li><a href="#work-on-the-data-and-start-fixing.-step-1-is-to-clean-up-the-column-names">Work on the data, and start fixing. Step 1 is to clean up the column names</a></li>
-<li><a href="#next-step-is-to-handle-the-week-column.-define-a-fixup-function">Next step is to handle the week column. Define a fixup function:</a></li>
-<li><a href="#apply-this-to-the-data-set">Apply this to the data set</a></li>
-<li><a href="#shove-this-into-a-new-variable-for-our-use">Shove this into a new variable for our use</a>
+<li><a href="#plots">Plots</a>
 <ul>
-<li><a href="#country-wide-data">COUNTRY-WIDE data</a></li>
-</ul></li>
-<li><a href="#group-by-date-so-we-can-get-rid-of-regiongender">Group by date, so we can get rid of region/gender</a></li>
-<li><a href="#create-a-lag-column-for-cases">Create a lag column for cases</a></li>
-<li><a href="#write-to-a-file">Write to a file</a></li>
-<li><a href="#write-to-a-file-1">Write to a file</a></li>
-<li><a href="#plot-per-weekday">Plot per weekday</a></li>
-<li><a href="#lagged-data-computes-the-difference-to-the-day-before.">Lagged data computes the difference to the day before.</a>
-<ul>
-<li><a href="#regional-data">REGIONAL DATA</a></li>
-<li><a href="#generally-follows-the-same-structure-as-for-the-country-wide-cases.">Generally follows the same structure as for the country-wide cases.</a></li>
+<li><a href="#general-key-data-plotting">General key data plotting</a></li>
 </ul></li>
 </ul>
 </div>
 
+<div id="strategy" class="section level2">
+<h2>Strategy</h2>
+<p>Data processing is best handled by writing a program which processes the data, rather than using interactive methods by hand. The reason is underlying data changes dynamically over time, but the <em>program</em> stays the same. This means we can simply re-run the program whenever data changes and get new visualizations.</p>
+<p>This visualization uses <em>R</em> which is a language mostly for statistical processing. It also has a very strong visualization side, and this is used by SSI in Denmark for their reporting. The original compartmental models by SSI for Covid-19, used for predictions, also used <em>R</em>.</p>
+<p>For our work here, <em>R</em> is a good choice because it has lots of tooling for working with tables of data. And SSI provide their data in tabular format.</p>
+</div>
 <div id="initial-setup" class="section level2">
 <h2>Initial setup</h2>
-<p>To process data sets from SSI, we’ll use R, and we’ll need some packages for doing so. We’ll load <code>tidyverse</code> to load a large set of R packages, and <code>lubridate</code> to load in date-handling, since this will be very useful.</p>
+<p>To process data sets from SSI, we’ll need some packages for doing so. We’ll load <code>tidyverse</code>, and <code>lubridate</code>.</p>
+<p>The <code>lubridate</code> package empowers our <em>R</em> system with better handling of dates and timestamps. The <code>tidyverse</code> package loads a slew of other packages for <em>R</em>. These empower our system to be more like a <em>functional</em> programming language, which I tend to like working in.</p>
 <p>You can grab SSI’s data from <a href="https://covid19.ssi.dk/overvagningsdata/download-fil-med-overvaagningdata">their homepage</a></p>
 <pre class="r"><code>library(tidyverse)
 library(lubridate)</code></pre>
 <p>SSI’s data is in a zip file. We unpack this zip file into a directory of the general form <code>YYYY-MM-DD</code>. Lets set up a name for the current directory we want to grab data from</p>
-<pre class="r"><code>date &lt;- &quot;2022-01-12&quot;</code></pre>
+<pre class="r"><code>date &lt;- &quot;2022-01-13&quot;</code></pre>
 </div>
 <div id="ingesting-data" class="section level2">
 <h2>Ingesting data</h2>
@@ -316,7 +311,13 @@ library(lubridate)</code></pre>
 <h3>Key Numbers</h3>
 <p>SSI provides a file with key numbers from the Covid-19 data gathered by them. This file is updated 5 days a week. We already unzipped the file in a directory, so lets expand our <code>date</code> constant and get a file name</p>
 <pre class="r"><code>file &lt;- sprintf(&quot;./data/%s/Regionalt_DB/03_bekraeftede_tilfaelde_doede_indlagte_pr_dag_pr_koen.csv&quot;, date)</code></pre>
-<p>We can read this file via our function. It will return a so-called <code>tibble</code> which is a table, or data frame, of the data in the file. We also provide initial types for each of the columns. In CSV, data is untyped. We would like to add type information to columns because it simplifies our later plotting. Many tools know how to handle data by its type, so we designate things up front.</p>
+<p>We can read this file via our function. It will return a so-called <code>tibble</code> which is a table, or data frame, of the data in the file. We also provide initial types for each of the columns. In CSV, data is untyped. We would like to add type information to columns because it simplifies our later plotting. Many tools in R know how to handle data by its type. Hence, if we have the right type, tools will naturally understand how to process the data at hand.</p>
+<p>In the following we use the following types:</p>
+<ul>
+<li><code>col_date()</code> is a date, with no particular timestamp.</li>
+<li><code>col_double()</code> is a floating point number. Because the numbers are “smallish”, using a double float for this carries enough precision for the integers we have.</li>
+<li><code>col_factor()</code> is used the define factor values. These are small (discrete) sets of values, in this case the different Regions of denmark.</li>
+</ul>
 <pre class="r"><code>data &lt;- read_data(file, col_types=cols(&#39;Region&#39; = col_factor(),
                                        &#39;Prøvetagningsdato&#39; = col_date(),
                                        &#39;Køn&#39; = col_factor(),
@@ -326,7 +327,7 @@ library(lubridate)</code></pre>
                                       ))</code></pre>
 <pre><code>## ℹ Using &quot;&#39;,&#39;&quot; as decimal and &quot;&#39;.&#39;&quot; as grouping mark. Use `read_delim()` for more control.</code></pre>
 <pre class="r"><code>data</code></pre>
-<pre><code>## # A tibble: 6,506 × 9
+<pre><code>## # A tibble: 6,512 × 9
 ##    Region      Prøvetagningsdato Køn   `Bekræftede tilfælde`  Døde Indlæggelser
 ##    &lt;fct&gt;       &lt;date&gt;            &lt;fct&gt;                 &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt;
 ##  1 Sjælland    2020-02-26        M                         1     0            0
@@ -339,7 +340,7 @@ library(lubridate)</code></pre>
 ##  8 Hovedstaden 2020-03-03        F                         1     0            0
 ##  9 Hovedstaden 2020-03-03        M                         3     0            1
 ## 10 Hovedstaden 2020-03-04        M                         2     0            0
-## # … with 6,496 more rows, and 3 more variables: Kummuleret antal døde &lt;dbl&gt;,
+## # … with 6,502 more rows, and 3 more variables: Kummuleret antal døde &lt;dbl&gt;,
 ## #   Kummuleret antal bekræftede tilfælde &lt;dbl&gt;,
 ## #   Kummuleret antal indlæggelser &lt;dbl&gt;</code></pre>
 <p>We certainly don’t want to work with danish-named columns. Rather, we want small descriptive names which are easy to type. We send our dataset through a <code>rename</code> pass for this.</p>
@@ -354,7 +355,7 @@ library(lubridate)</code></pre>
 # Cut the cumulative columns away
 data &lt;- data %&gt;% select(region, date, gender, cases, deaths, hospitalizations)
 data</code></pre>
-<pre><code>## # A tibble: 6,506 × 6
+<pre><code>## # A tibble: 6,512 × 6
 ##    region      date       gender cases deaths hospitalizations
 ##    &lt;fct&gt;       &lt;date&gt;     &lt;fct&gt;  &lt;dbl&gt;  &lt;dbl&gt;            &lt;dbl&gt;
 ##  1 Sjælland    2020-02-26 M          1      0                0
@@ -367,7 +368,7 @@ data</code></pre>
 ##  8 Hovedstaden 2020-03-03 F          1      0                0
 ##  9 Hovedstaden 2020-03-03 M          3      0                1
 ## 10 Hovedstaden 2020-03-04 M          2      0                0
-## # … with 6,496 more rows</code></pre>
+## # … with 6,502 more rows</code></pre>
 <p>More data handling. We are interested in somewhat recent data. Covid-19 has been around for a while. We are mostly interested in the recent development which is that Delta was dominant, and Omicron came into the space. Let’s put a low-end cutoff down:</p>
 <pre class="r"><code>lo_cutoff &lt;- &#39;2021-09-01&#39;</code></pre>
 <p>The hi-end of that cutoff, we set to two days before the maximal date in our data set</p>
@@ -379,7 +380,7 @@ data</code></pre>
 # Put this into the summary
 summary &lt;- data
 summary</code></pre>
-<pre><code>## # A tibble: 1,310 × 6
+<pre><code>## # A tibble: 1,320 × 6
 ##    region      date       gender cases deaths hospitalizations
 ##    &lt;fct&gt;       &lt;date&gt;     &lt;fct&gt;  &lt;dbl&gt;  &lt;dbl&gt;            &lt;dbl&gt;
 ##  1 Hovedstaden 2021-09-01 F        210      0                7
@@ -392,15 +393,15 @@ summary</code></pre>
 ##  8 Nordjylland 2021-09-01 M         16      1                2
 ##  9 Sjælland    2021-09-01 M         37      0                3
 ## 10 Syddanmark  2021-09-01 M         41      0                1
-## # … with 1,300 more rows</code></pre>
+## # … with 1,310 more rows</code></pre>
 </div>
 <div id="weekly-key-data-split-by-age" class="section level3">
 <h3>Weekly key data split by age</h3>
 <p>As in the case with the general data, we can define the file of interest</p>
 <pre class="r"><code>file &lt;- sprintf(&quot;./data/%s/Regionalt_DB/18_fnkt_alder_uge_testede_positive_nyindlagte.csv&quot;, date)</code></pre>
 <p>We can reuse our data reader from before.</p>
-<pre class="r"><code>data &lt;- read_data(file, col_types=cols(Uge = col_character(), # This will need fixing later
-                                       Aldersgruppe = col_factor(),
+<pre class="r"><code>data &lt;- read_data(file, col_types=cols(&#39;Uge&#39; = col_character(), # This will need fixing later
+                                       &#39;Aldersgruppe&#39; = col_factor(),
                                        &#39;Testede pr. 100.000 borgere&#39; = col_double(),
                                        &#39;Positive pr. 100.000 borgere&#39; = col_double(),
                                        &#39;Nyindlagte pr. 100.000 borgere&#39; = col_double(),
@@ -408,75 +409,140 @@ summary</code></pre>
                                        &#39;Antal positive&#39; = col_double()
                                       ))</code></pre>
 <pre><code>## ℹ Using &quot;&#39;,&#39;&quot; as decimal and &quot;&#39;.&#39;&quot; as grouping mark. Use `read_delim()` for more control.</code></pre>
+<p>First, let’s do the same thing as before. Rename the columns to something more amenable to further handling</p>
+<pre class="r"><code>data &lt;- data %&gt;% rename(week = &#39;Uge&#39;,
+                        ageGroup = &#39;Aldersgruppe&#39;,
+                        tested_100k = &#39;Testede pr. 100.000 borgere&#39;,
+                        cases_100k = &#39;Positive pr. 100.000 borgere&#39;,
+                        hospitalized_100k = &#39;Nyindlagte pr. 100.000 borgere&#39;,
+                        tested = &#39;Antal testede&#39;,
+                        cases = &#39;Antal positive&#39;)
+data</code></pre>
+<pre><code>## # A tibble: 895 × 7
+##    week     ageGroup tested_100k cases_100k hospitalized_100k tested cases
+##    &lt;chr&gt;    &lt;fct&gt;          &lt;dbl&gt;      &lt;dbl&gt;             &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+##  1 2020-W04 0-2                0          0                 0      0     0
+##  2 2020-W04 3-5                0          0                 0      0     0
+##  3 2020-W04 6-11               0          0                 0      0     0
+##  4 2020-W04 12-15              0          0                 0      0     0
+##  5 2020-W04 16-19              0          0                 0      0     0
+##  6 2020-W04 20-39              0          0                 0      0     0
+##  7 2020-W04 40-64              0          0                 0      0     0
+##  8 2020-W04 65-79              0          0                 0      0     0
+##  9 2020-W04 80+                0          0                 0      0     0
+## 10 2020-W05 65-79              0          0                 0      1     0
+## # … with 885 more rows</code></pre>
+<p>Take a look at the <code>week</code> column. It reports a year, and a week number. We’ll need to handle this, by converting this into a date. We’ll do that by defining a fixup function. If we have a string such as <code>2020-W04</code>, it means the 4th week of 2020. But to get a date, we need a day inside the week to use as the day-of-week. So first, we turn the string into <code>2020-W04-1</code>, then we send it through <code>strptime()</code>, which is a general time-parsing function.</p>
+<pre class="r"><code>fixup_week &lt;- function(s) {
+    # For strptime to do its work correctly, it must know a day of the week. Here, we
+    # use the 1st day of the week as a anchoring point, but in principle any day could
+    # have been used.
+    x &lt;- sprintf(&quot;%s-1&quot;, s)
+    res &lt;- strptime(x, format=&quot;%Y-W%W-%u&quot;)
+    return(as.POSIXct(res))
+}</code></pre>
+<p>With the function defined, we can <code>mutate</code> our data set by the fixup, setting each value in the table to be the fixup’ed value. While here, we can also cut off the older values since we are mostly interested in the recent data, as in the above example.</p>
+<pre class="r"><code># Apply this to the data set
+data &lt;- data %&gt;% mutate(week = fixup_week(week))
+data &lt;- data %&gt;% filter(week &gt;= lo_cutoff)</code></pre>
+<p>Finally, lets use a good name for this dataset (tibble):</p>
+<pre class="r"><code>weekly &lt;- data</code></pre>
 </div>
 </div>
-<div id="work-on-the-data-and-start-fixing.-step-1-is-to-clean-up-the-column-names" class="section level1">
-<h1>Work on the data, and start fixing. Step 1 is to clean up the column names</h1>
-<p>data &lt;- data %&gt;% rename(week = Uge, ageGroup = Aldersgruppe, tested_100k = ‘Testede pr. 100.000 borgere’, cases_100k = ‘Positive pr. 100.000 borgere’, hospitalized_100k = ‘Nyindlagte pr. 100.000 borgere’, tested = ‘Antal testede’, cases = ‘Antal positive’)</p>
-</div>
-<div id="next-step-is-to-handle-the-week-column.-define-a-fixup-function" class="section level1">
-<h1>Next step is to handle the week column. Define a fixup function:</h1>
-<p>fixup_week &lt;- function(s) { # For strptime to do its work correctly, it must know a day of the week. Here, we # use the 1st day of the week as a anchoring point, but in principle any day could # have been used. x &lt;- sprintf(“%s-1”, s) res &lt;- strptime(x, format=“%Y-W%W-%u”) return(as.POSIXct(res)) }</p>
-</div>
-<div id="apply-this-to-the-data-set" class="section level1">
-<h1>Apply this to the data set</h1>
-<p>data &lt;- data %&gt;% mutate(week = fixup_week(week)) data &lt;- data %&gt;% filter(week &gt;= cutoff)</p>
-</div>
-<div id="shove-this-into-a-new-variable-for-our-use" class="section level1">
-<h1>Shove this into a new variable for our use</h1>
-<p>weekly &lt;- data</p>
-<div id="country-wide-data" class="section level3">
-<h3>COUNTRY-WIDE data</h3>
-</div>
-</div>
-<div id="group-by-date-so-we-can-get-rid-of-regiongender" class="section level1">
-<h1>Group by date, so we can get rid of region/gender</h1>
-<p>country &lt;- summary %&gt;% group_by(date) # Summarize the data by counting country &lt;- country %&gt;% summarize(cases = sum(cases), deaths = sum(deaths), hospitalizations = sum(hospitalizations))</p>
-</div>
-<div id="create-a-lag-column-for-cases" class="section level1">
-<h1>Create a lag column for cases</h1>
-<p>country &lt;- country %&gt;% mutate(previous_cases = lag(cases, order_by=date), weekday = lubridate::wday(date, label=TRUE))</p>
-<p>plot_country &lt;- function(p, filename, title, subtitle) { p + geom_point(aes(color = weekday), size=3) + geom_smooth(method = ‘loess’, span = 0.3) + scale_colour_brewer(palette=“Set2”) + labs(title = title, subtitle = subtitle)</p>
-<pre><code>ggsave(filename, height=9, width=16, dpi=120)</code></pre>
-<p>}</p>
-</div>
-<div id="write-to-a-file" class="section level1">
-<h1>Write to a file</h1>
-<p>p &lt;- ggplot(country, aes(x=date, y=cases)) plot_country(p, “cases.png”, “Covid-19 cases in Denmark”, “Source: ssi.dk”)</p>
-</div>
-<div id="write-to-a-file-1" class="section level1">
-<h1>Write to a file</h1>
-<p>p &lt;- ggplot(country, aes(x=date, y=hospitalizations)) plot_country(p, “hospitalizations.png”, “Covid-19: new hospitalizations in Denmark”, “Source: ssi.dk”)</p>
-<p>p &lt;- ggplot(country, aes(x=date, y=deaths)) plot_country(p, “deaths.png”, “Covid-19: new deaths in Denmark”, “Source: ssi.dk”)</p>
-</div>
-<div id="plot-per-weekday" class="section level1">
-<h1>Plot per weekday</h1>
-<p>plot_day_of_week &lt;- function(p, filename, title, subtitle) { p + geom_point() + geom_jitter() + scale_colour_brewer(palette=“Set1”) + stat_boxplot(aes(fill=weekday, color=weekday), alpha=0.3) + labs(title = title, subtitle = subtitle)</p>
-<pre><code>ggsave(filename, height=9, width=16, dpi=120)</code></pre>
-<p>}</p>
-<p>p &lt;- ggplot(country, aes(x=weekday, y=(cases - previous_cases))) plot_day_of_week(p, “cases_weekday.png”, “New Covid-19 cases in Denmark, day of week (2021-09-01 to 2022-01-10)”, “Source: ssi.dk”)</p>
-</div>
-<div id="lagged-data-computes-the-difference-to-the-day-before." class="section level1">
-<h1>Lagged data computes the difference to the day before.</h1>
-<p>plot_country_lag &lt;- function(p, filename, title, subtitle) { p + geom_point(size=3) + scale_colour_brewer(palette=“Set2”) + labs(title = title, subtitle = subtitle)</p>
-<pre><code>ggsave(filename, height=9, width=16, dpi=120)</code></pre>
-<p>}</p>
-<p>p &lt;- ggplot(country, aes(x=date, y=(cases - previous_cases), color=weekday)) plot_country_lag(p, “cases_lag.png”, “Covid-19 cases change per day, Denmark”, “Source: ssi.dk”)</p>
-<div id="regional-data" class="section level3">
-<h3>REGIONAL DATA</h3>
-</div>
-<div id="generally-follows-the-same-structure-as-for-the-country-wide-cases." class="section level2">
-<h2>Generally follows the same structure as for the country-wide cases.</h2>
-<p>regions &lt;- summary %&gt;% group_by(date, region) regions &lt;- regions %&gt;% summarize(cases = sum(cases), deaths = sum(deaths), hospitalizations = sum(hospitalizations)) regions &lt;- regions %&gt;% mutate(weekday = lubridate::wday(date, label=TRUE), order_by=date)</p>
-<p>plot_regions &lt;- function(p, filename, title, subtitle) { p + geom_point(aes(color=region), size=2) + geom_smooth(method = ‘loess’, span = 0.3) + facet_grid(rows=vars(region)) + scale_colour_brewer(palette=“Set2”) + labs(title = title, subtitle = subtitle)</p>
-<pre><code>ggsave(filename, height=9, width=16, dpi=120)</code></pre>
-<p>}</p>
-<p>p &lt;- ggplot(regions, aes(x=date, y=cases)) plot_regions(p, “regions.png”, “Covid-19 cases in Denmark, per region”, “Source: ssi.dk”)</p>
-<p>plot_age_cases &lt;- function(p, filename, title, subtitle) { p + geom_raster() + scale_fill_continuous(type = “viridis”) + labs(title = title, subtitle = subtitle)</p>
-<pre><code>ggsave(filename, height=9, width=16, dpi=120)</code></pre>
-<p>}</p>
-<p>p &lt;- ggplot(weekly, aes(x=week, y=ageGroup, fill=cases_100k)) plot_age_cases(p, “weekly_age_cases.png”, “Covid-19 cases per 100k in Denmark, by age group”, “Source: ssi.dk”)</p>
-<p>p &lt;- ggplot(weekly, aes(x=week, y=ageGroup, fill=tested_100k)) plot_age_cases(p, “weekly_age_tested.png”, “Covid-19 tests per 100k in Denmark, by age group”, “Source: ssi.dk”)</p>
+<div id="plots" class="section level2">
+<h2>Plots</h2>
+<div id="general-key-data-plotting" class="section level3">
+<h3>General key data plotting</h3>
+<p>First, lets analyze the country-wide data set. Because data is given by each region, we must first summarize the data by summing the data from each region per day. This means we group by the <code>date</code> and then sum</p>
+<pre class="r"><code># Group by date, so we can get rid of region/gender
+country &lt;- summary %&gt;% group_by(date)
+# Summarize the data by counting
+country &lt;- country %&gt;% summarize(cases = sum(cases),
+                                 deaths = sum(deaths),
+                                 hospitalizations = sum(hospitalizations))</code></pre>
+<p>We also want a lag-column. That is, for each date, we want the count from the day preceding it. This allows us to compute the change for each day.</p>
+<pre class="r"><code># Create a lag column for cases
+country &lt;- country %&gt;% mutate(previous_cases = lag(cases, order_by=date),
+                              weekday = lubridate::wday(date, label=TRUE))</code></pre>
+<p>At this point, we have readied our data, and can start plotting. First, lets plot the number of cases we have in Denmark, and supply a trend-line for the cases</p>
+<pre class="r"><code>plot_country &lt;- function(p, title, subtitle) {
+    p + geom_point(aes(color = weekday), size=3) +
+        geom_smooth(method = &#39;loess&#39;, span = 0.3) +
+        scale_colour_brewer(palette=&quot;Set2&quot;) +
+        labs(title = title, subtitle = subtitle)
+}
+
+# Write to a file
+p &lt;- ggplot(country, aes(x=date, y=cases))
+plot_country(p, &quot;Trendline for Covid-19 cases in Denmark&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<pre><code># Write to a file
+p &lt;- ggplot(country, aes(x=date, y=hospitalizations))
+plot_country(p, &quot;hospitalizations.png&quot;, &quot;Covid-19: new hospitalizations in Denmark&quot;, &quot;Source: ssi.dk&quot;)
+
+p &lt;- ggplot(country, aes(x=date, y=deaths))
+plot_country(p, &quot;deaths.png&quot;, &quot;Covid-19: new deaths in Denmark&quot;, &quot;Source: ssi.dk&quot;)
+
+# Plot per weekday
+plot_day_of_week &lt;- function(p, filename, title, subtitle) {
+    p + geom_point() +
+        geom_jitter() +
+        scale_colour_brewer(palette=&quot;Set1&quot;) +
+        stat_boxplot(aes(fill=weekday, color=weekday), alpha=0.3) +
+        labs(title = title, subtitle = subtitle)
+
+    ggsave(filename, height=9, width=16, dpi=120)
+}
+
+p &lt;- ggplot(country, aes(x=weekday, y=(cases - previous_cases)))
+plot_day_of_week(p, &quot;cases_weekday.png&quot;, &quot;New Covid-19 cases in Denmark, day of week (2021-09-01 to 2022-01-10)&quot;, &quot;Source: ssi.dk&quot;)
+
+# Lagged data computes the difference to the day before.
+plot_country_lag &lt;- function(p, filename, title, subtitle) {
+    p + geom_point(size=3) +
+        scale_colour_brewer(palette=&quot;Set2&quot;) +
+        labs(title = title, subtitle = subtitle)
+
+    ggsave(filename, height=9, width=16, dpi=120)
+}
+
+p &lt;- ggplot(country, aes(x=date, y=(cases - previous_cases), color=weekday))
+plot_country_lag(p, &quot;cases_lag.png&quot;, &quot;Covid-19 cases change per day, Denmark&quot;, &quot;Source: ssi.dk&quot;)
+
+### REGIONAL DATA
+## Generally follows the same structure as for the country-wide cases.
+
+regions &lt;- summary %&gt;% group_by(date, region)
+regions &lt;- regions %&gt;% summarize(cases = sum(cases), deaths = sum(deaths), hospitalizations = sum(hospitalizations))
+regions &lt;- regions %&gt;% mutate(weekday = lubridate::wday(date, label=TRUE), order_by=date)
+
+plot_regions &lt;- function(p, filename, title, subtitle) {
+    p + geom_point(aes(color=region), size=2) +
+        geom_smooth(method = &#39;loess&#39;, span = 0.3) +
+        facet_grid(rows=vars(region)) +
+        scale_colour_brewer(palette=&quot;Set2&quot;) +
+        labs(title = title, subtitle = subtitle)
+
+    ggsave(filename, height=9, width=16, dpi=120)
+}
+
+p &lt;- ggplot(regions, aes(x=date, y=cases))
+plot_regions(p, &quot;regions.png&quot;, &quot;Covid-19 cases in Denmark, per region&quot;, &quot;Source: ssi.dk&quot;)
+
+plot_age_cases &lt;- function(p, filename, title, subtitle) {
+    p + geom_raster() +
+        scale_fill_continuous(type = &quot;viridis&quot;) +
+        labs(title = title, subtitle = subtitle)
+
+    ggsave(filename, height=9, width=16, dpi=120)
+}
+
+p &lt;- ggplot(weekly, aes(x=week, y=ageGroup, fill=cases_100k))
+plot_age_cases(p, &quot;weekly_age_cases.png&quot;, &quot;Covid-19 cases per 100k in Denmark, by age group&quot;, &quot;Source: ssi.dk&quot;)
+
+p &lt;- ggplot(weekly, aes(x=week, y=ageGroup, fill=tested_100k))
+plot_age_cases(p, &quot;weekly_age_tested.png&quot;, &quot;Covid-19 tests per 100k in Denmark, by age group&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
 </div>
 </div>
 

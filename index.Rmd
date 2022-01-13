@@ -6,11 +6,27 @@ output:
     toc: true
 ---
 
+## Strategy
+
+Data processing is best handled by writing a program which processes the data, rather than using interactive
+methods by hand. The reason is underlying data changes dynamically over time, but the *program* stays the
+same. This means we can simply re-run the program whenever data changes and get new visualizations.
+
+This visualization uses *R* which is a language mostly for statistical processing. It also has a very strong
+visualization side, and this is used by SSI in Denmark for their reporting. The original compartmental models
+by SSI for Covid-19, used for predictions, also used *R*.
+
+For our work here, *R* is a good choice because it has lots of tooling for working with tables of data. And
+SSI provide their data in tabular format.
+
 ## Initial setup
 
-To process data sets from SSI, we'll use R, and we'll need some packages for doing so. We'll
-load `tidyverse` to load a large set of R packages, and `lubridate` to load in date-handling,
-since this will be very useful.
+To process data sets from SSI, we'll need some packages for doing so. We'll
+load `tidyverse`, and `lubridate`.
+
+The `lubridate` package empowers our *R* system with better handling of dates and timestamps. The `tidyverse`
+package loads a slew of other packages for *R*. These empower our system to be more like a *functional*
+programming language, which I tend to like working in.
 
 You can grab SSI's data from [their homepage](https://covid19.ssi.dk/overvagningsdata/download-fil-med-overvaagningdata)
 
@@ -24,7 +40,7 @@ general form `YYYY-MM-DD`. Lets set up a name for the current directory we
 want to grab data from
 
 ```{r constants}
-date <- "2022-01-12"
+date <- "2022-01-13"
 ```
 
 ## Ingesting data
@@ -66,8 +82,15 @@ file <- sprintf("./data/%s/Regionalt_DB/03_bekraeftede_tilfaelde_doede_indlagte_
 
 We can read this file via our function. It will return a so-called `tibble` which is a table, or data frame,
 of the data in the file. We also provide initial types for each of the columns. In CSV, data is untyped.
-We would like to add type information to columns because it simplifies our later plotting. Many tools
-know how to handle data by its type, so we designate things up front.
+We would like to add type information to columns because it simplifies our later plotting. Many tools in R
+know how to handle data by its type. Hence, if we have the right type, tools will naturally understand how
+to process the data at hand.
+
+In the following we use the following types:
+
+* `col_date()` is a date, with no particular timestamp.
+* `col_double()` is a floating point number. Because the numbers are "smallish", using a double float for this carries enough precision for the integers we have.
+* `col_factor()` is used the define factor values. These are small (discrete) sets of values, in this case the different Regions of denmark.
 
 ```{r}
 data <- read_data(file, col_types=cols('Region' = col_factor(),
@@ -143,8 +166,8 @@ file <- sprintf("./data/%s/Regionalt_DB/18_fnkt_alder_uge_testede_positive_nyind
 We can reuse our data reader from before.
 
 ```{r}
-data <- read_data(file, col_types=cols(Uge = col_character(), # This will need fixing later
-                                       Aldersgruppe = col_factor(),
+data <- read_data(file, col_types=cols('Uge' = col_character(), # This will need fixing later
+                                       'Aldersgruppe' = col_factor(),
                                        'Testede pr. 100.000 borgere' = col_double(),
                                        'Positive pr. 100.000 borgere' = col_double(),
                                        'Nyindlagte pr. 100.000 borgere' = col_double(),
@@ -153,16 +176,27 @@ data <- read_data(file, col_types=cols(Uge = col_character(), # This will need f
                                       ))
 ```
 
-# Work on the data, and start fixing. Step 1 is to clean up the column names
-data <- data %>% rename(week = Uge,
-                        ageGroup = Aldersgruppe,
+First, let's do the same thing as before. Rename the columns to something more amenable
+to further handling
+
+```{r}
+data <- data %>% rename(week = 'Uge',
+                        ageGroup = 'Aldersgruppe',
                         tested_100k = 'Testede pr. 100.000 borgere',
                         cases_100k = 'Positive pr. 100.000 borgere',
                         hospitalized_100k = 'Nyindlagte pr. 100.000 borgere',
                         tested = 'Antal testede',
                         cases = 'Antal positive')
+data
+```
 
-# Next step is to handle the week column. Define a fixup function:
+Take a look at the `week` column. It reports a year, and a week number. We'll need to handle this,
+by converting this into a date. We'll do that by defining a fixup function. If we have a string such
+as `2020-W04`, it means the 4th week of 2020. But to get a date, we need a day inside the week to use
+as the day-of-week. So first, we turn the string into `2020-W04-1`, then we send it through `strptime()`,
+which is a general time-parsing function.
+
+```{r}
 fixup_week <- function(s) {
     # For strptime to do its work correctly, it must know a day of the week. Here, we
     # use the 1st day of the week as a anchoring point, but in principle any day could
@@ -171,40 +205,67 @@ fixup_week <- function(s) {
     res <- strptime(x, format="%Y-W%W-%u")
     return(as.POSIXct(res))
 }
+```
 
+With the function defined, we can `mutate` our data set by the fixup, setting each value in the table
+to be the fixup'ed value. While here, we can also cut off the older values since we are mostly interested
+in the recent data, as in the above example.
+
+```{r, warning = FALSE}
 # Apply this to the data set
 data <- data %>% mutate(week = fixup_week(week))
-data <- data %>% filter(week >= cutoff)
+data <- data %>% filter(week >= lo_cutoff)
+```
 
-# Shove this into a new variable for our use
+Finally, lets use a good name for this dataset (tibble):
+
+```{r}
 weekly <- data
+```
 
-### COUNTRY-WIDE data
+## Plots
 
+### General key data plotting
+
+First, lets analyze the country-wide data set. Because data is given by each region,
+we must first summarize the data by summing the data from each region per day. This
+means we group by the `date` and then sum
+
+```{r}
 # Group by date, so we can get rid of region/gender
 country <- summary %>% group_by(date)
 # Summarize the data by counting
 country <- country %>% summarize(cases = sum(cases),
                                  deaths = sum(deaths),
                                  hospitalizations = sum(hospitalizations))
+```
 
+We also want a lag-column. That is, for each date, we want the count from the
+day preceding it. This allows us to compute the change for each day.
+
+```{r}
 # Create a lag column for cases
 country <- country %>% mutate(previous_cases = lag(cases, order_by=date),
                               weekday = lubridate::wday(date, label=TRUE))
+```
 
-plot_country <- function(p, filename, title, subtitle) {
+At this point, we have readied our data, and can start plotting. First, lets plot
+the number of cases we have in Denmark, and supply a trend-line for the cases
+
+```{r}
+plot_country <- function(p, title, subtitle) {
     p + geom_point(aes(color = weekday), size=3) +
         geom_smooth(method = 'loess', span = 0.3) +
         scale_colour_brewer(palette="Set2") +
         labs(title = title, subtitle = subtitle)
-
-    ggsave(filename, height=9, width=16, dpi=120)
 }
 
 # Write to a file
 p <- ggplot(country, aes(x=date, y=cases))
-plot_country(p, "cases.png", "Covid-19 cases in Denmark", "Source: ssi.dk")
+plot_country(p, "Trendline for Covid-19 cases in Denmark", "Source: ssi.dk")
+```
 
+```
 # Write to a file
 p <- ggplot(country, aes(x=date, y=hospitalizations))
 plot_country(p, "hospitalizations.png", "Covid-19: new hospitalizations in Denmark", "Source: ssi.dk")
@@ -271,3 +332,4 @@ plot_age_cases(p, "weekly_age_cases.png", "Covid-19 cases per 100k in Denmark, b
 
 p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=tested_100k))
 plot_age_cases(p, "weekly_age_tested.png", "Covid-19 tests per 100k in Denmark, by age group", "Source: ssi.dk")
+```
