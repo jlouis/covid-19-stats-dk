@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+<meta name="date" content="2022-01-13" />
+
+<title>Covid-19 Stats for Denmark</title>
+
+<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Covid-19 Stats for Denmark</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Covid-19 Stats for Denmark</h1>
+<h4 class="date">2022-01-13</h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#initial-setup">Initial setup</a></li>
+<li><a href="#ingesting-data">Ingesting data</a>
+<ul>
+<li><a href="#key-numbers">Key Numbers</a></li>
+</ul></li>
+<li><a href="#danish-in-a-file-is-a-miserable-situation.-convert-into-the-internets-lingua-franca">Danish in a file is a miserable situation. Convert into the internets lingua franca,</a></li>
+<li><a href="#i.e.-english">i.e., english:</a></li>
+<li><a href="#cut-the-cumulative-columns-away">Cut the cumulative columns away</a></li>
+<li><a href="#we-are-only-interested-in-somewhat-recent-data.-what-happened-in-the-past-isnt-that">We are only interested in somewhat recent data. What happened in the past isn’t that</a></li>
+<li><a href="#important">important</a></li>
+<li><a href="#put-this-into-the-summary">Put this into the summary</a></li>
+<li><a href="#work-on-the-data-and-start-fixing.-step-1-is-to-clean-up-the-column-names">Work on the data, and start fixing. Step 1 is to clean up the column names</a></li>
+<li><a href="#next-step-is-to-handle-the-week-column.-define-a-fixup-function">Next step is to handle the week column. Define a fixup function:</a></li>
+<li><a href="#apply-this-to-the-data-set">Apply this to the data set</a></li>
+<li><a href="#shove-this-into-a-new-variable-for-our-use">Shove this into a new variable for our use</a>
+<ul>
+<li><a href="#country-wide-data">COUNTRY-WIDE data</a></li>
+</ul></li>
+<li><a href="#group-by-date-so-we-can-get-rid-of-regiongender">Group by date, so we can get rid of region/gender</a></li>
+<li><a href="#create-a-lag-column-for-cases">Create a lag column for cases</a></li>
+<li><a href="#write-to-a-file">Write to a file</a></li>
+<li><a href="#write-to-a-file-1">Write to a file</a></li>
+<li><a href="#plot-per-weekday">Plot per weekday</a></li>
+<li><a href="#lagged-data-computes-the-difference-to-the-day-before.">Lagged data computes the difference to the day before.</a>
+<ul>
+<li><a href="#regional-data">REGIONAL DATA</a></li>
+<li><a href="#generally-follows-the-same-structure-as-for-the-country-wide-cases.">Generally follows the same structure as for the country-wide cases.</a></li>
+</ul></li>
+</ul>
+</div>
+
+<div id="initial-setup" class="section level2">
+<h2>Initial setup</h2>
+<p>To process data sets from SSI, we’ll use R, and we’ll need some packages for doing so. We’ll load <code>tidyverse</code> to load a large set of R packages, and <code>lubridate</code> to load in date-handling, since this will be very useful.</p>
+<p>You can grab SSI’s data from <a href="https://covid19.ssi.dk/overvagningsdata/download-fil-med-overvaagningdata">their homepage</a></p>
+<pre class="r"><code>library(tidyverse)
+library(lubridate)</code></pre>
+<p>SSI’s data is in a zip file. We unpack this zip file into a directory of the general form <code>YYYY-MM-DD</code>. Lets set up a name for the current directory we want to grab data from</p>
+<pre class="r"><code>date &lt;- &quot;2022-01-12&quot;</code></pre>
+</div>
+<div id="ingesting-data" class="section level2">
+<h2>Ingesting data</h2>
+<p>SSIs data are in “CSV” files. The CSV format isn’t well specified, and the variant used by SSI is a variant in which the <code>;</code> character is used as a separator. This is relatively common in countries which uses the <code>,</code> as a separator in numbers, in order to avoid conflicts. R’s <code>readr</code> package have a way to handle this particular CSV variant.</p>
+<p>Furthermore, the files contain danish characters. They are encoded in the ISO8859-1(5) format, so we’ll have to do something about this. The obvious way is to turn the encoding into UTF-8, which is the modern encoding of Unicode. Once transformed into UTF-8, we can read the data into R.</p>
+<p>We’ll capture this conversion into a function <code>read_data</code>. It uses <a href="https://en.wikipedia.org/wiki/Iconv">iconv</a> to convert between encodings. The function also allows us to designate the types of the columns in the file we are trying to read.</p>
+<pre class="r"><code>read_data &lt;- function(f, col_types) {
+    raw &lt;- readBin(f, &quot;raw&quot;, n = file.size(f))
+    x_utf8 &lt;- iconv(list(raw), from = &quot;ISO-8859-1&quot;, to = &quot;UTF-8&quot;, toRaw = TRUE)[[1]]
+
+    # CSV variant 2 uses ; as the separator, among other adaptations
+    res &lt;- read_csv2(x_utf8, col_types=col_types)
+    return(res)
+}</code></pre>
+<div id="key-numbers" class="section level3">
+<h3>Key Numbers</h3>
+<p>SSI provides a file with key numbers from the Covid-19 data gathered by them. This file is updated 5 days a week. We already unzipped the file in a directory, so lets expand our <code>date</code> constant and get a file name</p>
+<pre class="r"><code>file &lt;- sprintf(&quot;./data/%s/Regionalt_DB/03_bekraeftede_tilfaelde_doede_indlagte_pr_dag_pr_koen.csv&quot;, date)</code></pre>
+<p>We can read this file via our function. It will return a so-called <code>tibble</code> which is a table, or data frame, of the data in the file. We also provide initial types for each of the columns. In CSV, data is untyped. We would like to add type information to columns because it simplifies our later plotting. Many tools know how to handle data by its type, so we designate things up front.</p>
+<pre class="r"><code>data &lt;- read_data(file, col_types=cols(Region = col_factor(),
+                                       Prøvetagningsdato = col_date(),
+                                       Køn = col_factor(),
+                                       &#39;Bekræftede tilfælde&#39; = col_double(),
+                                       Døde = col_double(),
+                                       Indlæggelser = col_double()
+                                      ))</code></pre>
+<pre><code>## ℹ Using &quot;&#39;,&#39;&quot; as decimal and &quot;&#39;.&#39;&quot; as grouping mark. Use `read_delim()` for more control.</code></pre>
+<pre class="r"><code>data</code></pre>
+<pre><code>## # A tibble: 6,506 × 9
+##    Region      Prøvetagningsdato Køn   `Bekræftede tilfælde`  Døde Indlæggelser
+##    &lt;fct&gt;       &lt;date&gt;            &lt;fct&gt;                 &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt;
+##  1 Sjælland    2020-02-26        M                         1     0            0
+##  2 Hovedstaden 2020-02-27        M                         1     0            0
+##  3 Midtjylland 2020-02-28        M                         1     0            0
+##  4 Hovedstaden 2020-03-01        M                         1     0            1
+##  5 Hovedstaden 2020-03-02        M                         2     0            1
+##  6 Sjælland    2020-03-02        M                         1     0            0
+##  7 Syddanmark  2020-03-02        M                         1     0            0
+##  8 Hovedstaden 2020-03-03        F                         1     0            0
+##  9 Hovedstaden 2020-03-03        M                         3     0            1
+## 10 Hovedstaden 2020-03-04        M                         2     0            0
+## # … with 6,496 more rows, and 3 more variables: Kummuleret antal døde &lt;dbl&gt;,
+## #   Kummuleret antal bekræftede tilfælde &lt;dbl&gt;,
+## #   Kummuleret antal indlæggelser &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<div id="danish-in-a-file-is-a-miserable-situation.-convert-into-the-internets-lingua-franca" class="section level1">
+<h1>Danish in a file is a miserable situation. Convert into the internets lingua franca,</h1>
+</div>
+<div id="i.e.-english" class="section level1">
+<h1>i.e., english:</h1>
+<p>data &lt;- data %&gt;% rename(region = Region, date = Prøvetagningsdato, gender = Køn, # This might be wrong, because it could also be ‘sex’. However, we are going to aggregate it cases = ‘Bekræftede tilfælde’, deaths = Døde, hospitalizations = Indlæggelser)</p>
+</div>
+<div id="cut-the-cumulative-columns-away" class="section level1">
+<h1>Cut the cumulative columns away</h1>
+<p>data &lt;- data %&gt;% select(region, date, gender, cases, deaths, hospitalizations)</p>
+</div>
+<div id="we-are-only-interested-in-somewhat-recent-data.-what-happened-in-the-past-isnt-that" class="section level1">
+<h1>We are only interested in somewhat recent data. What happened in the past isn’t that</h1>
+</div>
+<div id="important" class="section level1">
+<h1>important</h1>
+<p>lo_cutoff &lt;- ‘2021-09-01’ hi_cutoff &lt;- max(data$date) - days(2) data &lt;- data %&gt;% filter(date &gt;= cutoff, date &lt; hi_cutoff)</p>
+</div>
+<div id="put-this-into-the-summary" class="section level1">
+<h1>Put this into the summary</h1>
+<p>summary &lt;- data</p>
+<p>file &lt;- sprintf(“./data/%s/Regionalt_DB/18_fnkt_alder_uge_testede_positive_nyindlagte.csv”, date) # Parse data, by reading the CSV file, and do column type conversion # This makes a lot of later handling easier because we have actual types # for the data in our tibble data &lt;- read_data(file, col_types=cols(Uge = col_character(), # This will need fixing later Aldersgruppe = col_factor(), ‘Testede pr. 100.000 borgere’ = col_double(), ‘Positive pr. 100.000 borgere’ = col_double(), ‘Nyindlagte pr. 100.000 borgere’ = col_double(), ‘Antal testede’ = col_double(), ‘Antal positive’ = col_double() ))</p>
+</div>
+<div id="work-on-the-data-and-start-fixing.-step-1-is-to-clean-up-the-column-names" class="section level1">
+<h1>Work on the data, and start fixing. Step 1 is to clean up the column names</h1>
+<p>data &lt;- data %&gt;% rename(week = Uge, ageGroup = Aldersgruppe, tested_100k = ‘Testede pr. 100.000 borgere’, cases_100k = ‘Positive pr. 100.000 borgere’, hospitalized_100k = ‘Nyindlagte pr. 100.000 borgere’, tested = ‘Antal testede’, cases = ‘Antal positive’)</p>
+</div>
+<div id="next-step-is-to-handle-the-week-column.-define-a-fixup-function" class="section level1">
+<h1>Next step is to handle the week column. Define a fixup function:</h1>
+<p>fixup_week &lt;- function(s) { # For strptime to do its work correctly, it must know a day of the week. Here, we # use the 1st day of the week as a anchoring point, but in principle any day could # have been used. x &lt;- sprintf(“%s-1”, s) res &lt;- strptime(x, format=“%Y-W%W-%u”) return(as.POSIXct(res)) }</p>
+</div>
+<div id="apply-this-to-the-data-set" class="section level1">
+<h1>Apply this to the data set</h1>
+<p>data &lt;- data %&gt;% mutate(week = fixup_week(week)) data &lt;- data %&gt;% filter(week &gt;= cutoff)</p>
+</div>
+<div id="shove-this-into-a-new-variable-for-our-use" class="section level1">
+<h1>Shove this into a new variable for our use</h1>
+<p>weekly &lt;- data</p>
+<div id="country-wide-data" class="section level3">
+<h3>COUNTRY-WIDE data</h3>
+</div>
+</div>
+<div id="group-by-date-so-we-can-get-rid-of-regiongender" class="section level1">
+<h1>Group by date, so we can get rid of region/gender</h1>
+<p>country &lt;- summary %&gt;% group_by(date) # Summarize the data by counting country &lt;- country %&gt;% summarize(cases = sum(cases), deaths = sum(deaths), hospitalizations = sum(hospitalizations))</p>
+</div>
+<div id="create-a-lag-column-for-cases" class="section level1">
+<h1>Create a lag column for cases</h1>
+<p>country &lt;- country %&gt;% mutate(previous_cases = lag(cases, order_by=date), weekday = lubridate::wday(date, label=TRUE))</p>
+<p>plot_country &lt;- function(p, filename, title, subtitle) { p + geom_point(aes(color = weekday), size=3) + geom_smooth(method = ‘loess’, span = 0.3) + scale_colour_brewer(palette=“Set2”) + labs(title = title, subtitle = subtitle)</p>
+<pre><code>ggsave(filename, height=9, width=16, dpi=120)</code></pre>
+<p>}</p>
+</div>
+<div id="write-to-a-file" class="section level1">
+<h1>Write to a file</h1>
+<p>p &lt;- ggplot(country, aes(x=date, y=cases)) plot_country(p, “cases.png”, “Covid-19 cases in Denmark”, “Source: ssi.dk”)</p>
+</div>
+<div id="write-to-a-file-1" class="section level1">
+<h1>Write to a file</h1>
+<p>p &lt;- ggplot(country, aes(x=date, y=hospitalizations)) plot_country(p, “hospitalizations.png”, “Covid-19: new hospitalizations in Denmark”, “Source: ssi.dk”)</p>
+<p>p &lt;- ggplot(country, aes(x=date, y=deaths)) plot_country(p, “deaths.png”, “Covid-19: new deaths in Denmark”, “Source: ssi.dk”)</p>
+</div>
+<div id="plot-per-weekday" class="section level1">
+<h1>Plot per weekday</h1>
+<p>plot_day_of_week &lt;- function(p, filename, title, subtitle) { p + geom_point() + geom_jitter() + scale_colour_brewer(palette=“Set1”) + stat_boxplot(aes(fill=weekday, color=weekday), alpha=0.3) + labs(title = title, subtitle = subtitle)</p>
+<pre><code>ggsave(filename, height=9, width=16, dpi=120)</code></pre>
+<p>}</p>
+<p>p &lt;- ggplot(country, aes(x=weekday, y=(cases - previous_cases))) plot_day_of_week(p, “cases_weekday.png”, “New Covid-19 cases in Denmark, day of week (2021-09-01 to 2022-01-10)”, “Source: ssi.dk”)</p>
+</div>
+<div id="lagged-data-computes-the-difference-to-the-day-before." class="section level1">
+<h1>Lagged data computes the difference to the day before.</h1>
+<p>plot_country_lag &lt;- function(p, filename, title, subtitle) { p + geom_point(size=3) + scale_colour_brewer(palette=“Set2”) + labs(title = title, subtitle = subtitle)</p>
+<pre><code>ggsave(filename, height=9, width=16, dpi=120)</code></pre>
+<p>}</p>
+<p>p &lt;- ggplot(country, aes(x=date, y=(cases - previous_cases), color=weekday)) plot_country_lag(p, “cases_lag.png”, “Covid-19 cases change per day, Denmark”, “Source: ssi.dk”)</p>
+<div id="regional-data" class="section level3">
+<h3>REGIONAL DATA</h3>
+</div>
+<div id="generally-follows-the-same-structure-as-for-the-country-wide-cases." class="section level2">
+<h2>Generally follows the same structure as for the country-wide cases.</h2>
+<p>regions &lt;- summary %&gt;% group_by(date, region) regions &lt;- regions %&gt;% summarize(cases = sum(cases), deaths = sum(deaths), hospitalizations = sum(hospitalizations)) regions &lt;- regions %&gt;% mutate(weekday = lubridate::wday(date, label=TRUE), order_by=date)</p>
+<p>plot_regions &lt;- function(p, filename, title, subtitle) { p + geom_point(aes(color=region), size=2) + geom_smooth(method = ‘loess’, span = 0.3) + facet_grid(rows=vars(region)) + scale_colour_brewer(palette=“Set2”) + labs(title = title, subtitle = subtitle)</p>
+<pre><code>ggsave(filename, height=9, width=16, dpi=120)</code></pre>
+<p>}</p>
+<p>p &lt;- ggplot(regions, aes(x=date, y=cases)) plot_regions(p, “regions.png”, “Covid-19 cases in Denmark, per region”, “Source: ssi.dk”)</p>
+<p>plot_age_cases &lt;- function(p, filename, title, subtitle) { p + geom_raster() + scale_fill_continuous(type = “viridis”) + labs(title = title, subtitle = subtitle)</p>
+<pre><code>ggsave(filename, height=9, width=16, dpi=120)</code></pre>
+<p>}</p>
+<p>p &lt;- ggplot(weekly, aes(x=week, y=ageGroup, fill=cases_100k)) plot_age_cases(p, “weekly_age_cases.png”, “Covid-19 cases per 100k in Denmark, by age group”, “Source: ssi.dk”)</p>
+<p>p &lt;- ggplot(weekly, aes(x=week, y=ageGroup, fill=tested_100k)) plot_age_cases(p, “weekly_age_tested.png”, “Covid-19 tests per 100k in Denmark, by age group”, “Source: ssi.dk”)</p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
