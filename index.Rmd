@@ -1,6 +1,6 @@
 ---
 title: "Covid-19 Stats for Denmark"
-date: 2022-01-13
+date: 2022-01-14
 output:
   html_document:
     toc: true
@@ -40,7 +40,7 @@ general form `YYYY-MM-DD`. Lets set up a name for the current directory we
 want to grab data from
 
 ```{r constants}
-date <- "2022-01-13"
+date <- "2022-01-14"
 ```
 
 ## Ingesting data
@@ -362,22 +362,24 @@ p <- ggplot(regions, aes(x=date, y=cases))
 plot_regions(p, "Copenhagen-general area (Hovedstaden) contributes most of the noise", "Source: ssi.dk")
 ```
 
----
+## Weekly data
 
-*NOTE: The following is still being written up for the document*
+### Visualizations
 
-```
-plot_age_cases <- function(p, filename, title, subtitle) {
-    p + geom_raster() +
+```{r age-split-cases}
+plot_age_cases <- function(p, title, subtitle) {
+    p + geom_tile() +
         scale_fill_continuous(type = "viridis") +
         labs(title = title, subtitle = subtitle)
-
-    ggsave(filename, height=9, width=16, dpi=120)
 }
+```
 
+```{r age-group-cases}
 p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=cases_100k))
-plot_age_cases(p, "weekly_age_cases.png", "Covid-19 cases per 100k in Denmark, by age group", "Source: ssi.dk")
+plot_age_cases(p, "Covid-19 cases per 100k in Denmark, by age group", "Source: ssi.dk")
+```
 
+```{r age-group-tests}
 p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=tested_100k))
-plot_age_cases(p, "weekly_age_tested.png", "Covid-19 tests per 100k in Denmark, by age group", "Source: ssi.dk")
+plot_age_cases(p, "Covid-19 tests per 100k in Denmark, by age group", "Source: ssi.dk")
 ```
