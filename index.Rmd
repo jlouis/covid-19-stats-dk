@@ -45,15 +45,20 @@ date <- "2022-01-14"
 
 ## Ingesting data
 
-SSIs data are in "CSV" files. The CSV format isn't well specified, and the variant
-used by SSI is a variant in which the `;` character is used as a separator. This is
-relatively common in countries which uses the `,` as a separator in numbers, in order
-to avoid conflicts. R's `readr` package have a way to handle this particular CSV variant.
+The overall strategy follows a 3-step process:
 
-Furthermore, the files contain danish characters. They are encoded in the ISO8859-1(5)
+* *Parse* the incoming data, providing a proper interpretation of what it means.
+* *Transform* the data, making it amenable for data-visualization.
+* *Visualize* the data, aiding the understanding of patterns, evaluations, and structure.
+
+SSIs data are in "CSV" files. The CSV format isn't generally well specified, and the variant
+used by SSI is one in which the `;` character is used as a separator. This is
+relatively common in countries using the `,` as a separator in numbers. R's `readr` package,
+loaded by `tidyverse`, have a way to handle this particular CSV variant.
+
+Furthermore, the files contain Danish characters. They are encoded in the ISO8859-1(5)
 format, so we'll have to do something about this. The obvious way is to turn the
-encoding into UTF-8, which is the modern encoding of Unicode. Once transformed into
-UTF-8, we can read the data into R.
+encoding into UTF-8, which is the modern encoding of Unicode.
 
 We'll capture this conversion into a function `read_data`. It uses
 [iconv](https://en.wikipedia.org/wiki/Iconv) to convert between encodings. The function
@@ -70,27 +75,26 @@ read_data <- function(f, col_types) {
 }
 ```
 
-### Key Numbers
+### Daily key figures
 
-SSI provides a file with key numbers from the Covid-19 data gathered by them. This file is updated 5
-days a week. We already unzipped the file in a directory, so lets expand our `date` constant and get a
-file name
+SSI provides a file with key figures. This file is updated 5 days a week. Since we already have
+set a target date, we can compute the file with key figures in it by substitution
 
 ```{r}
 file <- sprintf("./data/%s/Regionalt_DB/03_bekraeftede_tilfaelde_doede_indlagte_pr_dag_pr_koen.csv", date)
 ```
 
 We can read this file via our function. It will return a so-called `tibble` which is a table, or data frame,
-of the data in the file. We also provide initial types for each of the columns. In CSV, data is untyped.
+of the data in the file. We also provide initial types for each of the columns, because CSV data is untyped.
+
 We would like to add type information to columns because it simplifies our later plotting. Many tools in R
-know how to handle data by its type. Hence, if we have the right type, tools will naturally understand how
-to process the data at hand.
+know how to vary it's handling, based on the type.
 
 In the following we use the following types:
 
 * `col_date()` is a date, with no particular timestamp.
-* `col_double()` is a floating point number. Because the numbers are "smallish", using a double float for this carries enough precision for the integers we have.
-* `col_factor()` is used the define factor values. These are small (discrete) sets of values, in this case the different Regions of denmark.
+* `col_double()` is a floating point number. This allows parses of numbers in general, while still handling integers adequately.
+* `col_factor()` is used the define factor values. These are small (discrete) sets of values, in this case the different Regions of Denmark.
 
 ```{r}
 data <- read_data(file, col_types=cols('Region' = col_factor(),
@@ -124,26 +128,30 @@ data <- data %>% select(region, date, gender, cases, deaths, hospitalizations)
 data
 ```
 
-More data handling. We are interested in somewhat recent data. Covid-19 has been around
-for a while. We are mostly interested in the recent development which is that Delta was dominant,
-and Omicron came into the space. Let's put a low-end cutoff down:
+Provide a low cut-off. We are interested in the recent period with Omicron, rather
+than the full duration of Covid-19.
 
 ```{r}
 lo_cutoff <- '2021-09-01'
 ```
 
-The hi-end of that cutoff, we set to two days before the maximal date in our data set
+The high end of that cutoff, we set to two days before the maximal date in our data set
 
 ```{r}
 hi_cutoff <- max(data$date) - days(2)
 ```
 
-Rationale: when you have a reported number in the news, it's generally a number from the
-cumulative count. The actual date of testing is often lagging by 24h to 48h. We are interested
-in getting the right test-date, even if it means we have a 2 days lag. Hence, we assume
-that recent data are still "forming". A typical example is that the count for the current
-date is very close to 0, as no tests have come in yet. In 2-3 days time, this number rises
-to the right value, as data is retroactively updated.
+Rationale: News outlets generally report a cumulative count increase . The
+actual date of testing is often lagging by 24h to 48h. We are interested in
+getting the right test-date, even if it means we have a 2 days lag. Hence, we
+assume that recent data are still "forming".
+
+A typical example is that the count for the current date is very close to 0, as
+no tests have come in yet. In 2-3 days time, this number rises to the right
+value, as data is retroactively updated.
+
+Using the cumulative count means that the test date is being moved to some other
+date, and this will skew any kind of trend-line attempt.
 
 Filtering the data set is easy:
 
@@ -155,7 +163,7 @@ summary <- data
 summary
 ```
 
-### Weekly key data split by age
+### Weekly key figures split by age
 
 As in the case with the general data, we can define the file of interest
 
@@ -176,8 +184,7 @@ data <- read_data(file, col_types=cols('Uge' = col_character(), # This will need
                                       ))
 ```
 
-First, let's do the same thing as before. Rename the columns to something more amenable
-to further handling
+Rename the columns to something more amenable to further handling
 
 ```{r}
 data <- data %>% rename(week = 'Uge',
@@ -192,9 +199,9 @@ data
 
 Take a look at the `week` column. It reports a year, and a week number. We'll need to handle this,
 by converting this into a date. We'll do that by defining a fixup function. If we have a string such
-as `2020-W04`, it means the 4th week of 2020. But to get a date, we need a day inside the week to use
-as the day-of-week. So first, we turn the string into `2020-W04-1`, then we send it through `strptime()`,
-which is a general time-parsing function.
+as `2020-W04`, it means the 4th week of 2020. To get a date, we need a day inside the week to use
+as the day-of-week. So we turn the string into `2020-W04-1`, then send it through `strptime()`,
+a general time-parsing function.
 
 ```{r}
 fixup_week <- function(s) {
@@ -208,8 +215,8 @@ fixup_week <- function(s) {
 ```
 
 With the function defined, we can `mutate` our data set by the fixup, setting each value in the table
-to be the fixup'ed value. While here, we can also cut off the older values since we are mostly interested
-in the recent data, as in the above example.
+to be the fixup'ed value. While here, also cut off the older values since we are mostly interested
+in the recent data.
 
 ```{r, warning = FALSE}
 # Apply this to the data set
@@ -225,17 +232,17 @@ weekly <- data
 
 ## Country-wide data
 
-First, lets analyze the country-wide data set. Because data is given by each region,
+Let's analyze the country-wide data set. Because data is given by each region,
 we must first summarize the data by summing the data from each region per day. This
 means we group by the `date` and then sum
 
 ```{r}
 # Group by date, so we can get rid of region/gender
-country <- summary %>% group_by(date)
-# Summarize the data by counting
-country <- country %>% summarize(cases = sum(cases),
-                                 deaths = sum(deaths),
-                                 hospitalizations = sum(hospitalizations))
+country <- summary %>%
+    group_by(date) %>%
+    summarize(cases = sum(cases),
+              deaths = sum(deaths),
+              hospitalizations = sum(hospitalizations))
 ```
 
 We also want a lag-column. That is, for each date, we want the count from the
@@ -262,8 +269,8 @@ as its plotting strategy. For instance `p + geom_point()` is a form of "addition
 where `p` is a plot and `geom_point()` is an x-y scatterplot of points. So the `+`
 means "add another layer on top of our plot."
 
-The other keypoint is that of the `aes(..)` function. This is an *aesthetic*-mapping.
-For example, the expression `aes(x=date, y=cases)` means to map the `date` column to the
+The other key idea is that of the `aes(..)` function. This is an *aesthetic*-mapping.
+For example, the expression `aes(x=date, y=cases)` maps the `date` column to the
 x-axis, and the `cases` column to the y-axis. Likewise, `aes(color = weekday)` maps a
 tables `weekday` column into a "color dimension.")
 
@@ -276,11 +283,11 @@ smoothed trend lines. It would be impossible to do by hand, but we have access t
 modern computers with ample computational power.
 
 ```{r country-cases}
-plot_country <- function(p, title, subtitle) {
+plot_country <- function(p, title, caption) {
     p + geom_point(aes(color = weekday), size=2) +
         geom_smooth(method = 'loess', span = .3) +
         scale_colour_brewer(palette="Set2") +
-        labs(title = title, subtitle = subtitle)
+        labs(title = title, caption = caption)
 }
 
 p <- ggplot(country, aes(x=date, y=cases))
@@ -312,10 +319,10 @@ As we shall see, this noise mostly comes from a single region in Denmark.
 
 ```{r country-lagged}
 # Lagged data computes the difference to the day before.
-plot_country_lag <- function(p, title, subtitle) {
+plot_country_lag <- function(p, title, caption) {
     p + geom_point(size=1.5) +
         scale_colour_brewer(palette="Set2") +
-        labs(title = title, subtitle = subtitle)
+        labs(title = title, caption = caption)
 }
 
 p <- ggplot(country, aes(x=date, y=(cases - previous_cases), color=weekday))
@@ -329,10 +336,10 @@ looking a bit into this. In particular:
 * `Wednesday` tend to have a smaller decrease.
 
 ```{r country-weekday}
-plot_day_of_week <- function(p, title, subtitle) {
+plot_day_of_week <- function(p, title, caption) {
     p + scale_colour_brewer(palette="Set1") +
         stat_boxplot(aes(fill=weekday, color=weekday), alpha=0.3) +
-        labs(title = title, subtitle = subtitle)
+        labs(title = title, caption = caption)
 }
 
 p <- ggplot(country, aes(x=weekday, y=(cases - previous_cases)))
@@ -341,21 +348,29 @@ plot_day_of_week(p, "Some days of the week has clear over/under-representation",
 
 ## Regional data
 
+Compute the aggregate over regions, rather than for the whole country
+
 ```{r regional-handling}
-regions <- summary %>% group_by(date, region)
-regions <- regions %>% summarize(cases = sum(cases), deaths = sum(deaths), hospitalizations = sum(hospitalizations))
+regions <- summary %>%
+  group_by(date, region) %>%
+  summarize(cases = sum(cases), deaths = sum(deaths), hospitalizations = sum(hospitalizations))
+
 regions <- regions %>% mutate(weekday = lubridate::wday(date, label=TRUE), order_by=date)
 ```
 
 ### Regional visualizations
 
+To visualize the regional data, we use a facet grid, splitting on region. As we see, there are a lot
+of noise data generated by "Hovedstaden" (corresponding to the general area around Copenhagen). This
+region is generating most cases, by far.
+
 ```{r regional-cases}
-plot_regions <- function(p, title, subtitle) {
+plot_regions <- function(p, title, caption) {
     p + geom_point(aes(color=region)) +
         geom_smooth(method = 'loess', span = 0.3) +
         facet_grid(rows=vars(region)) +
         scale_colour_brewer(palette="Set2") +
-        labs(title = title, subtitle = subtitle)
+        labs(title = title, caption = caption)
 }
 
 p <- ggplot(regions, aes(x=date, y=cases))
@@ -364,22 +379,59 @@ plot_regions(p, "Copenhagen-general area (Hovedstaden) contributes most of the n
 
 ## Weekly data
 
+As with the case for daily key figures, we can also use the weekly key figures. An important point of
+this data set is that the `ageGroup` are not a continous variable, but a discrete set of groups, non-uniformly
+spaced in between:
+
+```{r agegroup-values}
+levels(factor(weekly$ageGroup))
+```
+
+Why this is so is a good question. My bet is that it captures schooling groups among the youngest, splits
+adults into younger and older adults pivoting on 40, and handles the elderly in two large groups as well. However,
+it also means direct comparison between groups is somewhat dangerous.
+
+```{r agegroup-width, include=FALSE}
+ageGroup_width <- function(ag) {
+    return(case_when(
+        ag == '0-2' ~ 2 - 0,
+        ag == '3-5' ~  5 - 3,
+        ag == '6-11'  ~ 11 - 6,
+        ag == '12-15' ~ 15 - 12,
+        ag == '16-19' ~ 19 - 16,
+        ag == '20-39' ~ 39 - 20,
+        ag == '40-64' ~ 64 - 40,
+        ag == '65-79' ~ 79 - 65,
+        ag == '80+' ~ 100 - 80,
+        TRUE ~ 0
+    ))
+}
+
+weekly <- weekly %>% mutate(ageBand = ageGroup_width(ageGroup))
+weekly$ageBand
+```
+
 ### Visualizations
 
+We can provide a simple raster plot, where `x` represents the week, `y`
+represents the (discrete) age group and the fill represents the count we are
+interested in. In principle, the age groups have different sizes, but
+we can adjust for the size difference in groups by looking at "x per 100.000".
+
 ```{r age-split-cases}
-plot_age_cases <- function(p, title, subtitle) {
-    p + geom_tile() +
+plot_age_cases <- function(p, title, caption) {
+    p + geom_raster() +
         scale_fill_continuous(type = "viridis") +
-        labs(title = title, subtitle = subtitle)
+        labs(title = title, caption = caption, x="Week", y = "Age Group")
 }
 ```
 
 ```{r age-group-cases}
-p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=cases_100k))
-plot_age_cases(p, "Covid-19 cases per 100k in Denmark, by age group", "Source: ssi.dk")
+p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=cases_100k, height=ageBand/24))
+plot_age_cases(p, "Schools were closed on 15th Dec 2021, cases dropped", "Source: ssi.dk")
 ```
 
 ```{r age-group-tests}
 p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=tested_100k))
-plot_age_cases(p, "Covid-19 tests per 100k in Denmark, by age group", "Source: ssi.dk")
+plot_age_cases(p, "Schools were closed on 15th Dec 2021, tests dropped", "Source: ssi.dk")
 ```
