@@ -15,6 +15,8 @@ in
       rPackages.languageserver
       rPackages.jsonlite
       rPackages.rlang
+      rPackages.treemapify
+      rPackages.ggthemes
       pandoc
       bashInteractive
     ];
