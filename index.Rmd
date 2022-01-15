@@ -219,6 +219,8 @@ to be the fixup'ed value. While here, also cut off the older values since we are
 in the recent data.
 
 ```{r, warning = FALSE}
+lo_cutoff <- "2021-11-01"
+
 # Apply this to the data set
 data <- data %>% mutate(week = fixup_week(week))
 data <- data %>% filter(week >= lo_cutoff)
@@ -367,10 +369,13 @@ region is generating most cases, by far.
 ```{r regional-cases}
 plot_regions <- function(p, title, caption) {
     p + geom_point(aes(color=region)) +
-        geom_smooth(method = 'loess', span = 0.3) +
         facet_grid(rows=vars(region)) +
         scale_colour_brewer(palette="Set2") +
-        labs(title = title, caption = caption)
+        scale_y_continuous(breaks = c(0, 10000)) +
+        labs(title = title,
+             caption = caption,
+             x = "Date",
+             y = "Detected Cases")
 }
 
 p <- ggplot(regions, aes(x=date, y=cases))
@@ -420,18 +425,18 @@ we can adjust for the size difference in groups by looking at "x per 100.000".
 
 ```{r age-split-cases}
 plot_age_cases <- function(p, title, caption) {
-    p + geom_raster() +
+    p + geom_tile() +
         scale_fill_continuous(type = "viridis") +
         labs(title = title, caption = caption, x="Week", y = "Age Group")
 }
 ```
 
 ```{r age-group-cases}
-p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=cases_100k, height=ageBand/24))
+p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=cases_100k, height=0.8))
 plot_age_cases(p, "Schools were closed on 15th Dec 2021, cases dropped", "Source: ssi.dk")
 ```
 
 ```{r age-group-tests}
-p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=tested_100k))
+p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=tested_100k, height=0.8))
 plot_age_cases(p, "Schools were closed on 15th Dec 2021, tests dropped", "Source: ssi.dk")
 ```
