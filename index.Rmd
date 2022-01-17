@@ -1,6 +1,6 @@
 ---
 title: "Covid-19 Stats for Denmark"
-date: 2022-01-17
+date: 2022-01-18
 output:
   html_document:
     toc: true
@@ -40,7 +40,7 @@ general form `YYYY-MM-DD`. Lets set up a name for the current directory we
 want to grab data from
 
 ```{r constants}
-date <- "2022-01-17"
+date <- "2022-01-18"
 ```
 
 ## Ingesting data
@@ -230,6 +230,44 @@ Finally, lets use a good name for this dataset (tibble):
 
 ```{r}
 weekly <- data
+```
+
+### Data for muncipalities
+
+The munciplality data is in a seperate file:
+
+```{r}
+file <- sprintf("./data/%s/Kommunalt_DB/10_Kommune_kort.csv", date)
+```
+
+This needs to be read, like the other data sets
+
+```{r}
+data <- read_data(file, col_types=cols('Kommune' = col_double(), # This will need fixing later
+                                       'Kommunenavn' = col_factor(),
+                                       'Bekræftede tilfælde' = col_double(),
+                                       'Incidens' = col_double(),
+                                       'Bekræftede tilfælde de seneste 7 dage' = col_double(),
+                                       'Incidens de seneste 7 dage' = col_double(),
+                                       'Antal testede personer' = col_double(),
+                                       'Testestede pr. 100.000' = col_double(),
+                                       'Testede de seneste 7 dage' = col_double(),
+                                       'Testede pr. 100.000 de seneste 7 dage' = col_double(),
+                                       'Antal borgere' = col_double()
+                                      ))
+```
+
+And like before, this needs renaming
+
+```{r}
+data <- data %>% rename(lau1 = 'Kommune',
+                        name = 'Kommunenavn',
+                        incidence = 'Incidens de seneste 7 dage')
+data
+```
+
+```{r}
+muncipalities <- data
 ```
 
 ## Country-wide data
@@ -452,4 +490,30 @@ plot_age_cases(p, "Schools were closed on 15th Dec 2021, cases dropped", "Source
 ```{r age-group-tests}
 p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=tested_100k, height=0.8))
 plot_age_cases(p, "Schools were closed on 15th Dec 2021, tests dropped", "Source: ssi.dk")
+```
+
+## Muncipality data
+
+To compute incidence, we first compute a z-value as the difference from the mean. This sets
+us up for a label which are either above or below the mean value.
+
+```{r preprocess-muncipality data}
+muncipalities$incidence_z <- round(muncipalities$incidence - mean(muncipalities$incidence), 2)
+muncipalities$incidence_type <- ifelse(muncipalities$incidence_z < 0, "Below mean", "Above mean")
+```
+
+Reorder the muncipality factor levels according to the incidence score, then plot a diverging bars
+plot for the data.
+
+```{r muncipality-incidence-overview, fig.height=12}
+ggplot(muncipalities %>% mutate(name = fct_reorder(name, incidence_z)), aes(x=name, y=incidence)) +
+  geom_bar(stat='identity', aes(fill=incidence_type), width=.5)  +
+  scale_colour_brewer(palette="Set2") +
+  geom_hline(yintercept=mean(muncipalities$incidence), linetype=2, color="gray") +
+  labs(subtitle="Incidence",
+       title= "Diverging Bars",
+       fill = "Incidence",
+       x = "Name",
+       y = "Incidence over the last 7 days") +
+  coord_flip()
 ```
