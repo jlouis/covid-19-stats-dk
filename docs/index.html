@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2022-01-14" />
+<meta name="date" content="2022-01-17" />
 
 <title>Covid-19 Stats for Denmark</title>
 
@@ -258,7 +258,7 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">Covid-19 Stats for Denmark</h1>
-<h4 class="date">2022-01-14</h4>
+<h4 class="date">2022-01-17</h4>
 
 </div>
 
@@ -300,7 +300,7 @@ $(document).ready(function () {
 <pre class="r"><code>library(tidyverse)
 library(lubridate)</code></pre>
 <p>SSI’s data is in a zip file. We unpack this zip file into a directory of the general form <code>YYYY-MM-DD</code>. Lets set up a name for the current directory we want to grab data from</p>
-<pre class="r"><code>date &lt;- &quot;2022-01-14&quot;</code></pre>
+<pre class="r"><code>date &lt;- &quot;2022-01-17&quot;</code></pre>
 </div>
 <div id="ingesting-data" class="section level2">
 <h2>Ingesting data</h2>
@@ -342,7 +342,7 @@ library(lubridate)</code></pre>
                                       ))</code></pre>
 <pre><code>## ℹ Using &quot;&#39;,&#39;&quot; as decimal and &quot;&#39;.&#39;&quot; as grouping mark. Use `read_delim()` for more control.</code></pre>
 <pre class="r"><code>data</code></pre>
-<pre><code>## # A tibble: 6,525 × 9
+<pre><code>## # A tibble: 6,558 × 9
 ##    Region      Prøvetagningsdato Køn   `Bekræftede tilfælde`  Døde Indlæggelser
 ##    &lt;fct&gt;       &lt;date&gt;            &lt;fct&gt;                 &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt;
 ##  1 Sjælland    2020-02-26        M                         1     0            0
@@ -355,7 +355,7 @@ library(lubridate)</code></pre>
 ##  8 Hovedstaden 2020-03-03        F                         1     0            0
 ##  9 Hovedstaden 2020-03-03        M                         3     0            1
 ## 10 Hovedstaden 2020-03-04        M                         2     0            0
-## # … with 6,515 more rows, and 3 more variables: Kummuleret antal døde &lt;dbl&gt;,
+## # … with 6,548 more rows, and 3 more variables: Kummuleret antal døde &lt;dbl&gt;,
 ## #   Kummuleret antal bekræftede tilfælde &lt;dbl&gt;,
 ## #   Kummuleret antal indlæggelser &lt;dbl&gt;</code></pre>
 <p>We certainly don’t want to work with danish-named columns. Rather, we want small descriptive names which are easy to type. We send our dataset through a <code>rename</code> pass for this.</p>
@@ -370,7 +370,7 @@ library(lubridate)</code></pre>
 # Cut the cumulative columns away
 data &lt;- data %&gt;% select(region, date, gender, cases, deaths, hospitalizations)
 data</code></pre>
-<pre><code>## # A tibble: 6,525 × 6
+<pre><code>## # A tibble: 6,558 × 6
 ##    region      date       gender cases deaths hospitalizations
 ##    &lt;fct&gt;       &lt;date&gt;     &lt;fct&gt;  &lt;dbl&gt;  &lt;dbl&gt;            &lt;dbl&gt;
 ##  1 Sjælland    2020-02-26 M          1      0                0
@@ -383,7 +383,7 @@ data</code></pre>
 ##  8 Hovedstaden 2020-03-03 F          1      0                0
 ##  9 Hovedstaden 2020-03-03 M          3      0                1
 ## 10 Hovedstaden 2020-03-04 M          2      0                0
-## # … with 6,515 more rows</code></pre>
+## # … with 6,548 more rows</code></pre>
 <p>Provide a low cut-off. We are interested in the recent period with Omicron, rather than the full duration of Covid-19.</p>
 <pre class="r"><code>lo_cutoff &lt;- &#39;2021-09-01&#39;</code></pre>
 <p>The high end of that cutoff, we set to two days before the maximal date in our data set</p>
@@ -397,7 +397,7 @@ data</code></pre>
 # Put this into the summary
 summary &lt;- data
 summary</code></pre>
-<pre><code>## # A tibble: 1,330 × 6
+<pre><code>## # A tibble: 1,360 × 6
 ##    region      date       gender cases deaths hospitalizations
 ##    &lt;fct&gt;       &lt;date&gt;     &lt;fct&gt;  &lt;dbl&gt;  &lt;dbl&gt;            &lt;dbl&gt;
 ##  1 Hovedstaden 2021-09-01 F        210      0                7
@@ -410,7 +410,7 @@ summary</code></pre>
 ##  8 Nordjylland 2021-09-01 M         16      1                2
 ##  9 Sjælland    2021-09-01 M         37      0                3
 ## 10 Syddanmark  2021-09-01 M         41      0                1
-## # … with 1,320 more rows</code></pre>
+## # … with 1,350 more rows</code></pre>
 </div>
 <div id="weekly-key-figures-split-by-age" class="section level3">
 <h3>Weekly key figures split by age</h3>
@@ -435,7 +435,7 @@ summary</code></pre>
                         tested = &#39;Antal testede&#39;,
                         cases = &#39;Antal positive&#39;)
 data</code></pre>
-<pre><code>## # A tibble: 895 × 7
+<pre><code>## # A tibble: 904 × 7
 ##    week     ageGroup tested_100k cases_100k hospitalized_100k tested cases
 ##    &lt;chr&gt;    &lt;fct&gt;          &lt;dbl&gt;      &lt;dbl&gt;             &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
 ##  1 2020-W04 0-2                0          0                 0      0     0
@@ -448,7 +448,7 @@ data</code></pre>
 ##  8 2020-W04 65-79              0          0                 0      0     0
 ##  9 2020-W04 80+                0          0                 0      0     0
 ## 10 2020-W05 65-79              0          0                 0      1     0
-## # … with 885 more rows</code></pre>
+## # … with 894 more rows</code></pre>
 <p>Take a look at the <code>week</code> column. It reports a year, and a week number. We’ll need to handle this, by converting this into a date. We’ll do that by defining a fixup function. If we have a string such as <code>2020-W04</code>, it means the 4th week of 2020. To get a date, we need a day inside the week to use as the day-of-week. So we turn the string into <code>2020-W04-1</code>, then send it through <code>strptime()</code>, a general time-parsing function.</p>
 <pre class="r"><code>fixup_week &lt;- function(s) {
     # For strptime to do its work correctly, it must know a day of the week. Here, we
@@ -524,6 +524,13 @@ p &lt;- ggplot(country, aes(x=date, y=(cases - previous_cases), color=weekday))
 plot_country_lag(p, &quot;As Omicron took over, noise entered data in Denmark&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
 <pre><code>## Warning: Removed 1 rows containing missing values (geom_point).</code></pre>
 <p><img src="index_files/figure-html/country-lagged-1.png" width="672" /></p>
+<p>Another way of plotting this is to plot the number of cases today on one axis, and the previous cases from the day before on another axis.</p>
+<pre class="r"><code>p &lt;- ggplot(country, aes(x=previous_cases, y=cases, color=weekday))
+plot_country_lag(p, &quot;Delta change on cases&quot;, &quot;Source: ssi.dk&quot;) +
+  geom_abline(slope=1, color=&#39;gray&#39;, linetype=2)</code></pre>
+<pre><code>## Warning: Removed 1 rows containing missing values (geom_point).</code></pre>
+<p><img src="index_files/figure-html/country-lagged-scatter-1.png" width="672" /></p>
+<p>The fact Monday and Sunday are always above the dashed line means they always provide an increase in case count compared to other days. The days where these numbers tend to be entered into the database are Monday and Tuesday.</p>
 <p>Because there are some clear day-of-week structure in the data set, it’s worth looking a bit into this. In particular:</p>
 <ul>
 <li><code>Monday</code> tends to have large positive change.</li>

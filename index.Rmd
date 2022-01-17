@@ -1,6 +1,6 @@
 ---
 title: "Covid-19 Stats for Denmark"
-date: 2022-01-14
+date: 2022-01-17
 output:
   html_document:
     toc: true
@@ -40,7 +40,7 @@ general form `YYYY-MM-DD`. Lets set up a name for the current directory we
 want to grab data from
 
 ```{r constants}
-date <- "2022-01-14"
+date <- "2022-01-17"
 ```
 
 ## Ingesting data
@@ -330,6 +330,19 @@ plot_country_lag <- function(p, title, caption) {
 p <- ggplot(country, aes(x=date, y=(cases - previous_cases), color=weekday))
 plot_country_lag(p, "As Omicron took over, noise entered data in Denmark", "Source: ssi.dk")
 ```
+
+Another way of plotting this is to plot the number of cases today on one axis, and the previous
+cases from the day before on another axis.
+
+```{r country-lagged-scatter}
+p <- ggplot(country, aes(x=previous_cases, y=cases, color=weekday))
+plot_country_lag(p, "Delta change on cases", "Source: ssi.dk") +
+  geom_abline(slope=1, color='gray', linetype=2)
+```
+
+The fact Monday and Sunday are always above the dashed line means they always provide an
+increase in case count compared to other days. The days where these numbers tend to be
+entered into the database are Monday and Tuesday.
 
 Because there are some clear day-of-week structure in the data set, it's worth
 looking a bit into this. In particular:
