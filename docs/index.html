@@ -548,8 +548,8 @@ plot_country(p, &quot;Trendline for Covid-19 cases in Denmark&quot;, &quot;Sourc
 plot_country(p, &quot;Trendline for Covid-19: new hospitalizations in Denmark&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
 <pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
 <p><img src="index_files/figure-html/country-hospitalizations-1.png" width="672" /></p>
-<p>And likewise for deaths. Since deaths tend to have a larger lag before reporting, we don’t report the last 5 days</p>
-<pre class="r"><code>hi_cutoff_deaths &lt;- max(country$date) - days(4)
+<p>And likewise for deaths. Since deaths tend to have a larger lag before reporting, we don’t report the last 6 days</p>
+<pre class="r"><code>hi_cutoff_deaths &lt;- max(country$date) - days(5)
 p &lt;- ggplot(country %&gt;% filter(date &lt; hi_cutoff_deaths), aes(x=date, y=deaths))
 plot_country(p, &quot;Trendline for Covid-19: new deaths in Denmark&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
 <pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>

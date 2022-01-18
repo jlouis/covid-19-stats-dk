@@ -342,10 +342,10 @@ plot_country(p, "Trendline for Covid-19: new hospitalizations in Denmark", "Sour
 ```
 
 And likewise for deaths. Since deaths tend to have a larger lag before reporting, we don't
-report the last 5 days
+report the last 6 days
 
 ```{r country-deaths}
-hi_cutoff_deaths <- max(country$date) - days(4)
+hi_cutoff_deaths <- max(country$date) - days(5)
 p <- ggplot(country %>% filter(date < hi_cutoff_deaths), aes(x=date, y=deaths))
 plot_country(p, "Trendline for Covid-19: new deaths in Denmark", "Source: ssi.dk")
 ```
