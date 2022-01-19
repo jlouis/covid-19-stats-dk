@@ -533,7 +533,7 @@ More computation allows us to do the same for cases per test
 
 ```{r preprocess-muncipality-data-2}
 muncipalities$rate <- muncipalities$cases / muncipalities$tested_1w
-muncipalities$rate_z <- round(muncipalities$rate - mean(muncipalities$rate), 2)
+muncipalities$rate_z <- round(muncipalities$rate - mean(muncipalities$rate), 5)
 muncipalities$rate_type <- ifelse(muncipalities$rate_z < 0, "Below mean", "Above mean")
 muncipalities$rate
 ```

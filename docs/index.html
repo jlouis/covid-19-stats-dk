@@ -668,7 +668,7 @@ muncipalities$incidence_type &lt;- ifelse(muncipalities$incidence_z &lt; 0, &quo
 <p><img src="index_files/figure-html/muncipality-incidence-overview-1.png" width="672" /></p>
 <p>More computation allows us to do the same for cases per test</p>
 <pre class="r"><code>muncipalities$rate &lt;- muncipalities$cases / muncipalities$tested_1w
-muncipalities$rate_z &lt;- round(muncipalities$rate - mean(muncipalities$rate), 2)
+muncipalities$rate_z &lt;- round(muncipalities$rate - mean(muncipalities$rate), 5)
 muncipalities$rate_type &lt;- ifelse(muncipalities$rate_z &lt; 0, &quot;Below mean&quot;, &quot;Above mean&quot;)
 muncipalities$rate</code></pre>
 <pre><code>##  [1] 0.00000000 0.21524304 0.21742013 0.19753326 0.22585970 0.19465776
