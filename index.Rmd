@@ -1,6 +1,6 @@
 ---
 title: "Covid-19 Stats for Denmark"
-date: 2022-01-18
+date: 2022-01-19
 output:
   html_document:
     toc: true
@@ -40,7 +40,7 @@ general form `YYYY-MM-DD`. Lets set up a name for the current directory we
 want to grab data from
 
 ```{r constants}
-date <- "2022-01-18"
+date <- "2022-01-19"
 ```
 
 ## Ingesting data
@@ -345,7 +345,7 @@ And likewise for deaths. Since deaths tend to have a larger lag before reporting
 report the last 6 days
 
 ```{r country-deaths}
-hi_cutoff_deaths <- max(country$date) - days(5)
+hi_cutoff_deaths <- max(country$date) - days(6)
 p <- ggplot(country %>% filter(date < hi_cutoff_deaths), aes(x=date, y=deaths))
 plot_country(p, "Trendline for Covid-19: new deaths in Denmark", "Source: ssi.dk")
 ```
@@ -419,10 +419,9 @@ region is generating most cases, by far.
 
 ```{r regional-cases}
 plot_regions <- function(p, title, caption) {
-    p + geom_point(aes(color=region)) +
+    p + geom_point(aes(color=region), size=.5) +
         facet_grid(rows=vars(region)) +
         scale_colour_brewer(palette="Set2") +
-        scale_y_continuous(breaks = c(0, 10000)) +
         labs(title = title,
              caption = caption,
              x = "Date",
@@ -484,13 +483,14 @@ plot_age_cases <- function(p, title, caption) {
 
 ```{r age-group-cases}
 p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=cases_100k, height=0.8))
-plot_age_cases(p, "Schools were closed on 15th Dec 2021, cases dropped", "Source: ssi.dk")
+plot_age_cases(p, "Schools were closed on 15th Dec 2021, reopened in Jan 2022", "Source: ssi.dk")
 ```
 
 ```{r age-group-tests}
 p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=tested_100k, height=0.8))
-plot_age_cases(p, "Schools were closed on 15th Dec 2021, tests dropped", "Source: ssi.dk")
+plot_age_cases(p, "Schools were closed on 15th Dec 2021, reopened in Jan 2022", "Source: ssi.dk")
 ```
+
 
 ## Muncipality data
 
@@ -509,7 +509,7 @@ plot for the data.
 ggplot(muncipalities %>% mutate(name = fct_reorder(name, incidence_z)), aes(x=name, y=incidence)) +
   geom_bar(stat='identity', aes(fill=incidence_type), width=.5)  +
   scale_colour_brewer(palette="Set2") +
-  geom_hline(yintercept=mean(muncipalities$incidence), linetype=2, color="gray") +
+  geom_hline(yintercept=mean(muncipalities$incidence), linetype=2) +
   labs(subtitle="Incidence",
        title= "Diverging Bars",
        fill = "Incidence",

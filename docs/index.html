@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2022-01-18" />
+<meta name="date" content="2022-01-19" />
 
 <title>Covid-19 Stats for Denmark</title>
 
@@ -258,7 +258,7 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">Covid-19 Stats for Denmark</h1>
-<h4 class="date">2022-01-18</h4>
+<h4 class="date">2022-01-19</h4>
 
 </div>
 
@@ -302,7 +302,7 @@ $(document).ready(function () {
 <pre class="r"><code>library(tidyverse)
 library(lubridate)</code></pre>
 <p>SSI’s data is in a zip file. We unpack this zip file into a directory of the general form <code>YYYY-MM-DD</code>. Lets set up a name for the current directory we want to grab data from</p>
-<pre class="r"><code>date &lt;- &quot;2022-01-18&quot;</code></pre>
+<pre class="r"><code>date &lt;- &quot;2022-01-19&quot;</code></pre>
 </div>
 <div id="ingesting-data" class="section level2">
 <h2>Ingesting data</h2>
@@ -344,7 +344,7 @@ library(lubridate)</code></pre>
                                       ))</code></pre>
 <pre><code>## ℹ Using &quot;&#39;,&#39;&quot; as decimal and &quot;&#39;.&#39;&quot; as grouping mark. Use `read_delim()` for more control.</code></pre>
 <pre class="r"><code>data</code></pre>
-<pre><code>## # A tibble: 6,563 × 9
+<pre><code>## # A tibble: 6,575 × 9
 ##    Region      Prøvetagningsdato Køn   `Bekræftede tilfælde`  Døde Indlæggelser
 ##    &lt;fct&gt;       &lt;date&gt;            &lt;fct&gt;                 &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt;
 ##  1 Sjælland    2020-02-26        M                         1     0            0
@@ -357,7 +357,7 @@ library(lubridate)</code></pre>
 ##  8 Hovedstaden 2020-03-03        F                         1     0            0
 ##  9 Hovedstaden 2020-03-03        M                         3     0            1
 ## 10 Hovedstaden 2020-03-04        M                         2     0            0
-## # … with 6,553 more rows, and 3 more variables: Kummuleret antal døde &lt;dbl&gt;,
+## # … with 6,565 more rows, and 3 more variables: Kummuleret antal døde &lt;dbl&gt;,
 ## #   Kummuleret antal bekræftede tilfælde &lt;dbl&gt;,
 ## #   Kummuleret antal indlæggelser &lt;dbl&gt;</code></pre>
 <p>We certainly don’t want to work with danish-named columns. Rather, we want small descriptive names which are easy to type. We send our dataset through a <code>rename</code> pass for this.</p>
@@ -372,7 +372,7 @@ library(lubridate)</code></pre>
 # Cut the cumulative columns away
 data &lt;- data %&gt;% select(region, date, gender, cases, deaths, hospitalizations)
 data</code></pre>
-<pre><code>## # A tibble: 6,563 × 6
+<pre><code>## # A tibble: 6,575 × 6
 ##    region      date       gender cases deaths hospitalizations
 ##    &lt;fct&gt;       &lt;date&gt;     &lt;fct&gt;  &lt;dbl&gt;  &lt;dbl&gt;            &lt;dbl&gt;
 ##  1 Sjælland    2020-02-26 M          1      0                0
@@ -385,7 +385,7 @@ data</code></pre>
 ##  8 Hovedstaden 2020-03-03 F          1      0                0
 ##  9 Hovedstaden 2020-03-03 M          3      0                1
 ## 10 Hovedstaden 2020-03-04 M          2      0                0
-## # … with 6,553 more rows</code></pre>
+## # … with 6,565 more rows</code></pre>
 <p>Provide a low cut-off. We are interested in the recent period with Omicron, rather than the full duration of Covid-19.</p>
 <pre class="r"><code>lo_cutoff &lt;- &#39;2021-09-01&#39;</code></pre>
 <p>The high end of that cutoff, we set to two days before the maximal date in our data set</p>
@@ -399,7 +399,7 @@ data</code></pre>
 # Put this into the summary
 summary &lt;- data
 summary</code></pre>
-<pre><code>## # A tibble: 1,370 × 6
+<pre><code>## # A tibble: 1,380 × 6
 ##    region      date       gender cases deaths hospitalizations
 ##    &lt;fct&gt;       &lt;date&gt;     &lt;fct&gt;  &lt;dbl&gt;  &lt;dbl&gt;            &lt;dbl&gt;
 ##  1 Hovedstaden 2021-09-01 F        210      0                7
@@ -412,7 +412,7 @@ summary</code></pre>
 ##  8 Nordjylland 2021-09-01 M         16      1                2
 ##  9 Sjælland    2021-09-01 M         37      0                3
 ## 10 Syddanmark  2021-09-01 M         41      0                1
-## # … with 1,360 more rows</code></pre>
+## # … with 1,370 more rows</code></pre>
 </div>
 <div id="weekly-key-figures-split-by-age" class="section level3">
 <h3>Weekly key figures split by age</h3>
@@ -496,15 +496,15 @@ data</code></pre>
 ##     lau1 name            `Bekræftede tilf… Incidens `Bekræftede tilfæ… incidence
 ##    &lt;dbl&gt; &lt;fct&gt;                       &lt;dbl&gt;    &lt;dbl&gt;              &lt;dbl&gt;     &lt;dbl&gt;
 ##  1   411 &quot;&quot;                              0       NA                  0         0
-##  2   101 &quot;København&quot;                195895    30548              22681      3537
-##  3   147 &quot;Frederiksberg&quot;             29138    28237               3388      3283
-##  4   151 &quot;Ballerup&quot;                  13226    26891               1868      3798
-##  5   153 &quot;Brøndby&quot;                   11377    31924               1529      4290
-##  6   155 &quot;Dragør&quot;                     3897    26677                551      3772
-##  7   157 &quot;Gentofte&quot;                  19510    26391               2657      3594
-##  8   159 &quot;Gladsaxe&quot;                  19050    27550               2544      3679
-##  9   161 &quot;Glostrup&quot;                   6871    29341                996      4253
-## 10   163 &quot;Herlev&quot;                     8864    30797               1017      3533
+##  2   101 &quot;København&quot;                199797    31157              24138      3764
+##  3   147 &quot;Frederiksberg&quot;             29731    28812               3607      3495
+##  4   151 &quot;Ballerup&quot;                  13593    27638               2034      4136
+##  5   153 &quot;Brøndby&quot;                   11559    32434               1642      4607
+##  6   155 &quot;Dragør&quot;                     3970    27177                583      3991
+##  7   157 &quot;Gentofte&quot;                  20106    27197               2808      3798
+##  8   159 &quot;Gladsaxe&quot;                  19646    28412               2765      3999
+##  9   161 &quot;Glostrup&quot;                   6997    29879               1022      4364
+## 10   163 &quot;Herlev&quot;                     9068    31506               1137      3950
 ## # … with 89 more rows, and 5 more variables: Antal testede personer &lt;dbl&gt;,
 ## #   Testestede pr. 100.000 &lt;dbl&gt;, Testede de seneste 7 dage &lt;dbl&gt;,
 ## #   Testede pr. 100.000 de seneste 7 dage &lt;dbl&gt;, Antal borgere &lt;dbl&gt;</code></pre>
@@ -549,7 +549,7 @@ plot_country(p, &quot;Trendline for Covid-19: new hospitalizations in Denmark&qu
 <pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
 <p><img src="index_files/figure-html/country-hospitalizations-1.png" width="672" /></p>
 <p>And likewise for deaths. Since deaths tend to have a larger lag before reporting, we don’t report the last 6 days</p>
-<pre class="r"><code>hi_cutoff_deaths &lt;- max(country$date) - days(5)
+<pre class="r"><code>hi_cutoff_deaths &lt;- max(country$date) - days(6)
 p &lt;- ggplot(country %&gt;% filter(date &lt; hi_cutoff_deaths), aes(x=date, y=deaths))
 plot_country(p, &quot;Trendline for Covid-19: new deaths in Denmark&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
 <pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
@@ -603,10 +603,9 @@ plot_day_of_week(p, &quot;Some days of the week has clear over/under-representat
 <h3>Regional visualizations</h3>
 <p>To visualize the regional data, we use a facet grid, splitting on region. As we see, there are a lot of noise data generated by “Hovedstaden” (corresponding to the general area around Copenhagen). This region is generating most cases, by far.</p>
 <pre class="r"><code>plot_regions &lt;- function(p, title, caption) {
-    p + geom_point(aes(color=region)) +
+    p + geom_point(aes(color=region), size=.5) +
         facet_grid(rows=vars(region)) +
         scale_colour_brewer(palette=&quot;Set2&quot;) +
-        scale_y_continuous(breaks = c(0, 10000)) +
         labs(title = title,
              caption = caption,
              x = &quot;Date&quot;,
@@ -633,10 +632,10 @@ plot_regions(p, &quot;Copenhagen-general area (Hovedstaden) contributes most of 
         labs(title = title, caption = caption, x=&quot;Week&quot;, y = &quot;Age Group&quot;)
 }</code></pre>
 <pre class="r"><code>p &lt;- ggplot(weekly, aes(x=week, y=ageGroup, fill=cases_100k, height=0.8))
-plot_age_cases(p, &quot;Schools were closed on 15th Dec 2021, cases dropped&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
+plot_age_cases(p, &quot;Schools were closed on 15th Dec 2021, reopened in Jan 2022&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
 <p><img src="index_files/figure-html/age-group-cases-1.png" width="672" /></p>
 <pre class="r"><code>p &lt;- ggplot(weekly, aes(x=week, y=ageGroup, fill=tested_100k, height=0.8))
-plot_age_cases(p, &quot;Schools were closed on 15th Dec 2021, tests dropped&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
+plot_age_cases(p, &quot;Schools were closed on 15th Dec 2021, reopened in Jan 2022&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
 <p><img src="index_files/figure-html/age-group-tests-1.png" width="672" /></p>
 </div>
 </div>
@@ -649,7 +648,7 @@ muncipalities$incidence_type &lt;- ifelse(muncipalities$incidence_z &lt; 0, &quo
 <pre class="r"><code>ggplot(muncipalities %&gt;% mutate(name = fct_reorder(name, incidence_z)), aes(x=name, y=incidence)) +
   geom_bar(stat=&#39;identity&#39;, aes(fill=incidence_type), width=.5)  +
   scale_colour_brewer(palette=&quot;Set2&quot;) +
-  geom_hline(yintercept=mean(muncipalities$incidence), linetype=2, color=&quot;gray&quot;) +
+  geom_hline(yintercept=mean(muncipalities$incidence), linetype=2) +
   labs(subtitle=&quot;Incidence&quot;,
        title= &quot;Diverging Bars&quot;,
        fill = &quot;Incidence&quot;,
