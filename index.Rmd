@@ -397,7 +397,7 @@ looking a bit into this. In particular:
 
 ```{r country-weekday}
 plot_day_of_week <- function(p, title, caption) {
-    p + scale_colour_brewer(palette="Set1") +
+    p + scale_colour_brewer(palette="Set2") +
         stat_boxplot(aes(fill=weekday, color=weekday), alpha=0.3) +
         labs(title = title, caption = caption)
 }
