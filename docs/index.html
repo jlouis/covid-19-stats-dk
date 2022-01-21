@@ -586,7 +586,7 @@ plot_country_lag(p, &quot;Delta change on cases&quot;, &quot;Source: ssi.dk&quot
 <li><code>Wednesday</code> tend to have a smaller decrease.</li>
 </ul>
 <pre class="r"><code>plot_day_of_week &lt;- function(p, title, caption) {
-    p + scale_colour_brewer(palette=&quot;Set1&quot;) +
+    p + scale_colour_brewer(palette=&quot;Set2&quot;) +
         stat_boxplot(aes(fill=weekday, color=weekday), alpha=0.3) +
         labs(title = title, caption = caption)
 }
@@ -700,6 +700,92 @@ muncipalities$rate</code></pre>
        caption = &quot;Source: ssi.dk&quot;) +
   coord_flip()</code></pre>
 <p><img src="index_files/figure-html/muncipality-rate-overview-1.png" width="672" /></p>
+<p>Read in Popcount:</p>
+<pre class="r"><code>read_data_2 &lt;- function(f) {
+    raw &lt;- readBin(f, &quot;raw&quot;, n = file.size(f))
+    x_utf8 &lt;- iconv(list(raw), from = &quot;ISO-8859-1&quot;, to = &quot;UTF-8&quot;, toRaw = TRUE)[[1]]
+
+    # CSV variant 2 uses ; as the separator, among other adaptations
+    res &lt;- readr::read_csv2(x_utf8, col_names=FALSE)
+    return(res)
+}
+
+popcount &lt;- read_data_2(&quot;./data/DS/2022121185617360647690FOLK1AM68563293012.csv&quot;)</code></pre>
+<pre><code>## ℹ Using &quot;&#39;,&#39;&quot; as decimal and &quot;&#39;.&#39;&quot; as grouping mark. Use `read_delim()` for more control.</code></pre>
+<pre><code>## Rows: 103 Columns: 4</code></pre>
+<pre><code>## ── Column specification ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## Delimiter: &quot;;&quot;
+## chr (3): X1, X2, X3
+## dbl (1): X4</code></pre>
+<pre><code>## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>popcount &lt;- popcount %&gt;% rename(name = 3, popcount = 4)
+popcount &lt;- popcount %&gt;% select(name, popcount)
+popcount</code></pre>
+<pre><code>## # A tibble: 103 × 2
+##    name          popcount
+##    &lt;chr&gt;            &lt;dbl&gt;
+##  1 København       644987
+##  2 Frederiksberg   103963
+##  3 Dragør           14602
+##  4 Tårnby           42728
+##  5 Albertslund      27575
+##  6 Ballerup         49228
+##  7 Brøndby          35535
+##  8 Gentofte         74154
+##  9 Gladsaxe         69321
+## 10 Glostrup         23519
+## # … with 93 more rows</code></pre>
+<p>Join the tables</p>
+<pre class="r"><code>muncipalities &lt;- muncipalities %&gt;% left_join(popcount)</code></pre>
+<pre><code>## Joining, by = &quot;name&quot;</code></pre>
+<pre class="r"><code>muncipalities %&gt;% select(name, incidence, popcount)</code></pre>
+<pre><code>## # A tibble: 99 × 3
+##    name            incidence popcount
+##    &lt;chr&gt;               &lt;dbl&gt;    &lt;dbl&gt;
+##  1 &quot;&quot;                      0       NA
+##  2 &quot;København&quot;          4264   644987
+##  3 &quot;Frederiksberg&quot;      4058   103963
+##  4 &quot;Ballerup&quot;           4748    49228
+##  5 &quot;Brøndby&quot;            5014    35535
+##  6 &quot;Dragør&quot;             4463    14602
+##  7 &quot;Gentofte&quot;           4295    74154
+##  8 &quot;Gladsaxe&quot;           4751    69321
+##  9 &quot;Glostrup&quot;           4906    23519
+## 10 &quot;Herlev&quot;             4802    28861
+## # … with 89 more rows</code></pre>
+<p>Now, test correlation:</p>
+<pre class="r"><code>plot(muncipalities$incidence, muncipalities$popcount)</code></pre>
+<p><img src="index_files/figure-html/correlation-popcount-incidence-1.png" width="672" /></p>
+<pre class="r"><code>cor.test(muncipalities$incidence, muncipalities$popcount)</code></pre>
+<pre><code>## 
+##  Pearson&#39;s product-moment correlation
+## 
+## data:  muncipalities$incidence and muncipalities$popcount
+## t = 1.6662, df = 92, p-value = 0.09908
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  -0.0326010  0.3612368
+## sample estimates:
+##       cor 
+## 0.1711465</code></pre>
+<p>Clearly, this argues there are no strong connection between population count, and the incidence in a given muncipality.</p>
+<p>Analyzing the rate shows there’s a connection between it and incidence, but this is more expected:</p>
+<pre class="r"><code>pairs(muncipalities %&gt;% select(incidence,popcount,rate))</code></pre>
+<p><img src="index_files/figure-html/correlation-incidence-rate-1.png" width="672" /></p>
+<pre class="r"><code>cor.test(muncipalities$incidence, muncipalities$rate)</code></pre>
+<pre><code>## 
+##  Pearson&#39;s product-moment correlation
+## 
+## data:  muncipalities$incidence and muncipalities$rate
+## t = 18.663, df = 97, p-value &lt; 2.2e-16
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  0.8323110 0.9210168
+## sample estimates:
+##       cor 
+## 0.8844076</code></pre>
 </div>
 
 

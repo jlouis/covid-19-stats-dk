@@ -538,7 +538,6 @@ muncipalities$rate_type <- ifelse(muncipalities$rate_z < 0, "Below mean", "Above
 muncipalities$rate
 ```
 
-
 ```{r muncipality-rate-overview, fig.height=12}
 ggplot(muncipalities %>% mutate(name = fct_reorder(name, rate)), aes(x=name, y=rate)) +
   geom_bar(stat='identity', aes(fill=rate_type), width=.5)  +
@@ -552,3 +551,50 @@ ggplot(muncipalities %>% mutate(name = fct_reorder(name, rate)), aes(x=name, y=r
        caption = "Source: ssi.dk") +
   coord_flip()
 ```
+
+### Analyzing infections over population counts
+
+Read in Popcount. These can be obtained by Danmarks Statistik, by query on `FOLK1AM` in their
+data bank:
+
+```{r read-popcount}
+read_data_2 <- function(f) {
+    raw <- readBin(f, "raw", n = file.size(f))
+    x_utf8 <- iconv(list(raw), from = "ISO-8859-1", to = "UTF-8", toRaw = TRUE)[[1]]
+
+    # CSV variant 2 uses ; as the separator, among other adaptations
+    res <- readr::read_csv2(x_utf8, col_names=FALSE)
+    return(res)
+}
+
+popcount <- read_data_2("./data/DS/2022121185617360647690FOLK1AM68563293012.csv")
+popcount <- popcount %>% rename(name = 3, popcount = 4)
+popcount <- popcount %>% select(name, popcount)
+popcount
+```
+
+Join the tables, which will happen on the muncipality name. I would have liked a better
+key for the join, but this will do:
+
+```{r}
+muncipalities <- muncipalities %>% left_join(popcount)
+muncipalities %>% select(name, incidence, popcount)
+```
+
+Now, test correlation via Pearson:
+
+```{r correlation-popcount-incidence}
+plot(muncipalities$incidence, muncipalities$popcount)
+cor.test(muncipalities$incidence, muncipalities$popcount)
+```
+
+Clearly, this argues there are no strong connection between population count,
+and the incidence in a given muncipality.
+
+Analyzing the rate shows there's a connection between it and incidence, but
+this is more expected:
+```{r correlation-incidence-rate}
+pairs(muncipalities %>% select(incidence,popcount,rate))
+cor.test(muncipalities$incidence, muncipalities$rate)
+```
+
