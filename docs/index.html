@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2022-01-19" />
+<meta name="date" content="2022-01-21" />
 
 <title>Covid-19 Stats for Denmark</title>
 
@@ -258,7 +258,7 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">Covid-19 Stats for Denmark</h1>
-<h4 class="date">2022-01-19</h4>
+<h4 class="date">2022-01-21</h4>
 
 </div>
 
@@ -302,7 +302,7 @@ $(document).ready(function () {
 <pre class="r"><code>library(tidyverse)
 library(lubridate)</code></pre>
 <p>SSI’s data is in a zip file. We unpack this zip file into a directory of the general form <code>YYYY-MM-DD</code>. Lets set up a name for the current directory we want to grab data from</p>
-<pre class="r"><code>date &lt;- &quot;2022-01-19&quot;</code></pre>
+<pre class="r"><code>date &lt;- &quot;2022-01-21&quot;</code></pre>
 </div>
 <div id="ingesting-data" class="section level2">
 <h2>Ingesting data</h2>
@@ -344,7 +344,7 @@ library(lubridate)</code></pre>
                                       ))</code></pre>
 <pre><code>## ℹ Using &quot;&#39;,&#39;&quot; as decimal and &quot;&#39;.&#39;&quot; as grouping mark. Use `read_delim()` for more control.</code></pre>
 <pre class="r"><code>data</code></pre>
-<pre><code>## # A tibble: 6,575 × 9
+<pre><code>## # A tibble: 6,596 × 9
 ##    Region      Prøvetagningsdato Køn   `Bekræftede tilfælde`  Døde Indlæggelser
 ##    &lt;fct&gt;       &lt;date&gt;            &lt;fct&gt;                 &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt;
 ##  1 Sjælland    2020-02-26        M                         1     0            0
@@ -357,7 +357,7 @@ library(lubridate)</code></pre>
 ##  8 Hovedstaden 2020-03-03        F                         1     0            0
 ##  9 Hovedstaden 2020-03-03        M                         3     0            1
 ## 10 Hovedstaden 2020-03-04        M                         2     0            0
-## # … with 6,565 more rows, and 3 more variables: Kummuleret antal døde &lt;dbl&gt;,
+## # … with 6,586 more rows, and 3 more variables: Kummuleret antal døde &lt;dbl&gt;,
 ## #   Kummuleret antal bekræftede tilfælde &lt;dbl&gt;,
 ## #   Kummuleret antal indlæggelser &lt;dbl&gt;</code></pre>
 <p>We certainly don’t want to work with danish-named columns. Rather, we want small descriptive names which are easy to type. We send our dataset through a <code>rename</code> pass for this.</p>
@@ -372,7 +372,7 @@ library(lubridate)</code></pre>
 # Cut the cumulative columns away
 data &lt;- data %&gt;% select(region, date, gender, cases, deaths, hospitalizations)
 data</code></pre>
-<pre><code>## # A tibble: 6,575 × 6
+<pre><code>## # A tibble: 6,596 × 6
 ##    region      date       gender cases deaths hospitalizations
 ##    &lt;fct&gt;       &lt;date&gt;     &lt;fct&gt;  &lt;dbl&gt;  &lt;dbl&gt;            &lt;dbl&gt;
 ##  1 Sjælland    2020-02-26 M          1      0                0
@@ -385,7 +385,7 @@ data</code></pre>
 ##  8 Hovedstaden 2020-03-03 F          1      0                0
 ##  9 Hovedstaden 2020-03-03 M          3      0                1
 ## 10 Hovedstaden 2020-03-04 M          2      0                0
-## # … with 6,565 more rows</code></pre>
+## # … with 6,586 more rows</code></pre>
 <p>Provide a low cut-off. We are interested in the recent period with Omicron, rather than the full duration of Covid-19.</p>
 <pre class="r"><code>lo_cutoff &lt;- &#39;2021-09-01&#39;</code></pre>
 <p>The high end of that cutoff, we set to two days before the maximal date in our data set</p>
@@ -399,7 +399,7 @@ data</code></pre>
 # Put this into the summary
 summary &lt;- data
 summary</code></pre>
-<pre><code>## # A tibble: 1,380 × 6
+<pre><code>## # A tibble: 1,400 × 6
 ##    region      date       gender cases deaths hospitalizations
 ##    &lt;fct&gt;       &lt;date&gt;     &lt;fct&gt;  &lt;dbl&gt;  &lt;dbl&gt;            &lt;dbl&gt;
 ##  1 Hovedstaden 2021-09-01 F        210      0                7
@@ -412,7 +412,7 @@ summary</code></pre>
 ##  8 Nordjylland 2021-09-01 M         16      1                2
 ##  9 Sjælland    2021-09-01 M         37      0                3
 ## 10 Syddanmark  2021-09-01 M         41      0                1
-## # … with 1,370 more rows</code></pre>
+## # … with 1,390 more rows</code></pre>
 </div>
 <div id="weekly-key-figures-split-by-age" class="section level3">
 <h3>Weekly key figures split by age</h3>
@@ -440,9 +440,9 @@ data</code></pre>
 <pre><code>## # A tibble: 904 × 7
 ##    week     ageGroup tested_100k cases_100k hospitalized_100k tested cases
 ##    &lt;chr&gt;    &lt;fct&gt;          &lt;dbl&gt;      &lt;dbl&gt;             &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
-##  1 2020-W04 0-2                0          0                 0      0     0
-##  2 2020-W04 3-5                0          0                 0      0     0
-##  3 2020-W04 6-11               0          0                 0      0     0
+##  1 2020-W04 00-2               0          0                 0      0     0
+##  2 2020-W04 03-5               0          0                 0      0     0
+##  3 2020-W04 06-11              0          0                 0      0     0
 ##  4 2020-W04 12-15              0          0                 0      0     0
 ##  5 2020-W04 16-19              0          0                 0      0     0
 ##  6 2020-W04 20-39              0          0                 0      0     0
@@ -502,16 +502,16 @@ data</code></pre>
 <pre><code>## # A tibble: 99 × 11
 ##     lau1 name      `Bekræftede tilf… Incidens cases incidence tested tested_100k
 ##    &lt;dbl&gt; &lt;fct&gt;                 &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;       &lt;dbl&gt;
-##  1   411 &quot;&quot;                        0       NA     0         0     86       94505
-##  2   101 &quot;Københa…            199797    31157 24138      3764 647124      101000
-##  3   147 &quot;Frederi…             29731    28812  3607      3495 110024      107000
-##  4   151 &quot;Balleru…             13593    27638  2034      4136  49452      101000
-##  5   153 &quot;Brøndby&quot;             11559    32434  1642      4607  35595       99879
-##  6   155 &quot;Dragør&quot;               3970    27177   583      3991  14338       98152
-##  7   157 &quot;Gentoft…             20106    27197  2808      3798  74822      101000
-##  8   159 &quot;Gladsax…             19646    28412  2765      3999  70865      102000
-##  9   161 &quot;Glostru…              6997    29879  1022      4364  24023      103000
-## 10   163 &quot;Herlev&quot;               9068    31506  1137      3950  29356      102000
+##  1   411 &quot;&quot;                        0       NA     0         0     87       95604
+##  2   101 &quot;Københa…            210039    32754 27343      4264 648079      101000
+##  3   147 &quot;Frederi…             31417    30445  4187      4058 110216      107000
+##  4   151 &quot;Balleru…             14400    29278  2335      4748  49513      101000
+##  5   153 &quot;Brøndby&quot;             12141    34068  1787      5014  35657      100000
+##  6   155 &quot;Dragør&quot;               4188    28669   652      4463  14357       98282
+##  7   157 &quot;Gentoft…             21308    28823  3175      4295  74938      101000
+##  8   159 &quot;Gladsax…             20856    30161  3285      4751  71019      103000
+##  9   161 &quot;Glostru…              7427    31715  1149      4906  24076      103000
+## 10   163 &quot;Herlev&quot;               9597    33344  1382      4802  29408      102000
 ## # … with 89 more rows, and 3 more variables: tested_1w &lt;dbl&gt;,
 ## #   tested_100k_1w &lt;dbl&gt;, population &lt;dbl&gt;</code></pre>
 <pre class="r"><code>muncipalities &lt;- data</code></pre>
@@ -629,7 +629,7 @@ plot_regions(p, &quot;Regional split of cases, DK&quot;,
 <h2>Weekly data</h2>
 <p>As with the case for daily key figures, we can also use the weekly key figures. An important point of this data set is that the <code>ageGroup</code> are not a continous variable, but a discrete set of groups, non-uniformly spaced in between:</p>
 <pre class="r"><code>levels(factor(weekly$ageGroup))</code></pre>
-<pre><code>## [1] &quot;0-2&quot;   &quot;3-5&quot;   &quot;6-11&quot;  &quot;12-15&quot; &quot;16-19&quot; &quot;20-39&quot; &quot;40-64&quot; &quot;65-79&quot; &quot;80+&quot;</code></pre>
+<pre><code>## [1] &quot;06-11&quot; &quot;12-15&quot; &quot;16-19&quot; &quot;20-39&quot; &quot;40-64&quot; &quot;65-79&quot; &quot;80+&quot;   &quot;00-02&quot; &quot;03-05&quot;</code></pre>
 <p>Why this is so is a good question. My bet is that it captures schooling groups among the youngest, splits adults into younger and older adults pivoting on 40, and handles the elderly in two large groups as well. However, it also means direct comparison between groups is somewhat dangerous.</p>
 <div id="visualizations" class="section level3">
 <h3>Visualizations</h3>
@@ -671,23 +671,23 @@ muncipalities$incidence_type &lt;- ifelse(muncipalities$incidence_z &lt; 0, &quo
 muncipalities$rate_z &lt;- round(muncipalities$rate - mean(muncipalities$rate), 5)
 muncipalities$rate_type &lt;- ifelse(muncipalities$rate_z &lt; 0, &quot;Below mean&quot;, &quot;Above mean&quot;)
 muncipalities$rate</code></pre>
-<pre><code>##  [1] 0.00000000 0.21524304 0.21742013 0.19753326 0.22585970 0.19465776
-##  [7] 0.21387768 0.20660539 0.21661721 0.19773913 0.22701299 0.21859440
-## [13] 0.18773980 0.20729883 0.22359578 0.19815763 0.18143662 0.21808042
-## [19] 0.18580122 0.17030390 0.19930860 0.19890808 0.14387645 0.23570020
-## [25] 0.21770122 0.17243783 0.17412099 0.17680478 0.16672595 0.17826087
-## [31] 0.18062243 0.17763033 0.15288326 0.13978733 0.16956003 0.15851735
-## [37] 0.17405529 0.19783941 0.16583978 0.16142896 0.14865811 0.17420000
-## [43] 0.11818368 0.14609350 0.16152960 0.17017850 0.09037464 0.13589267
-## [49] 0.14469590 0.15096575 0.13334838 0.12260650 0.16962269 0.13732622
-## [55] 0.14331723 0.11105451 0.12003693 0.14452496 0.13072165 0.11482727
-## [61] 0.13666325 0.18921406 0.06801008 0.18854089 0.18365707 0.11902050
-## [67] 0.15263450 0.15109034 0.15996573 0.14564173 0.16251830 0.15720492
-## [73] 0.15849582 0.11976549 0.15376477 0.16925578 0.18695652 0.12426860
-## [79] 0.18972332 0.18150609 0.09375000 0.17533253 0.21390228 0.15323026
-## [85] 0.14155977 0.15170655 0.13461538 0.14541202 0.14326170 0.14645009
-## [91] 0.17835034 0.13583485 0.16102884 0.03829787 0.16737125 0.15655306
-## [97] 0.15730819 0.17182121 0.18068161</code></pre>
+<pre><code>##  [1] 0.00000000 0.23159473 0.23692847 0.21302801 0.23519347 0.20957891
+##  [7] 0.22985593 0.22769807 0.23372661 0.22427783 0.23915237 0.23540431
+## [13] 0.21322012 0.22672103 0.24659864 0.21810312 0.20195440 0.24293478
+## [19] 0.21087172 0.18636806 0.22098841 0.21653176 0.16580889 0.23708487
+## [25] 0.23587356 0.20045435 0.20364921 0.20861779 0.18586515 0.20798249
+## [31] 0.20120383 0.20192133 0.17612420 0.15112963 0.19693225 0.18001828
+## [37] 0.18960760 0.21344486 0.18784682 0.19095111 0.16959826 0.19548585
+## [43] 0.13357962 0.16347774 0.18610817 0.19254429 0.10572494 0.15804890
+## [49] 0.15967562 0.17775571 0.15584979 0.14534716 0.19452642 0.15876633
+## [55] 0.18405553 0.12424850 0.10305677 0.16901144 0.16663384 0.12924681
+## [61] 0.14983352 0.21878515 0.13123845 0.22000224 0.20508561 0.13611197
+## [67] 0.17227640 0.16946371 0.18204231 0.16898026 0.18625929 0.17996417
+## [73] 0.17030568 0.13742988 0.17956707 0.18630286 0.21827666 0.14244186
+## [79] 0.20508295 0.20152833 0.10121457 0.19992677 0.23588274 0.16838352
+## [85] 0.16224882 0.17453271 0.14585179 0.16168717 0.16216638 0.15991231
+## [91] 0.19897324 0.15230224 0.16671793 0.04263566 0.19035487 0.16373263
+## [97] 0.16721992 0.18952021 0.20110024</code></pre>
 <pre class="r"><code>ggplot(muncipalities %&gt;% mutate(name = fct_reorder(name, rate)), aes(x=name, y=rate)) +
   geom_bar(stat=&#39;identity&#39;, aes(fill=rate_type), width=.5)  +
   scale_colour_brewer(palette=&quot;Set2&quot;) +
