@@ -1,6 +1,6 @@
 ---
 title: "Covid-19 Stats for Denmark"
-date: 2022-01-24
+date: 2022-01-25
 output:
   html_document:
     toc: true
@@ -40,7 +40,7 @@ general form `YYYY-MM-DD`. Lets set up a name for the current directory we
 want to grab data from
 
 ```{r constants}
-date <- "2022-01-24"
+date <- "2022-01-25"
 ```
 
 ## Ingesting data
@@ -398,7 +398,7 @@ looking a bit into this. In particular:
 ```{r country-weekday}
 plot_day_of_week <- function(p, title, caption) {
     p + scale_colour_brewer(palette="Set2") +
-        stat_boxplot(aes(fill=weekday, color=weekday), alpha=0.3) +
+        stat_boxplot(aes(color=weekday), alpha=0.3) +
         labs(title = title, caption = caption)
 }
 
