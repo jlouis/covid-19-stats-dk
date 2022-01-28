@@ -1,6 +1,6 @@
 ---
 title: "Covid-19 Stats for Denmark"
-date: 2022-01-27
+date: 2022-01-28
 output:
   html_document:
     toc: true
@@ -40,7 +40,7 @@ general form `YYYY-MM-DD`. Lets set up a name for the current directory we
 want to grab data from
 
 ```{r constants}
-date <- "2022-01-27"
+date <- "2022-01-28"
 ```
 
 ## Ingesting data
@@ -598,3 +598,10 @@ pairs(muncipalities %>% select(incidence,popcount,rate))
 cor.test(muncipalities$incidence, muncipalities$rate)
 ```
 
+Summarize:
+
+```{r muncipality-summary}
+summary(muncipalities$rate)
+d <- density(muncipalities$rate)
+plot(d)
+```
