@@ -6,3 +6,5 @@ navbar:
   left:
     - text: "Home"
       href: index.html
+    - text: "New development"
+      href: core.html
