@@ -11,13 +11,14 @@ knitr::read_chunk('core.R')
 
 # Covid 19 Stats for Denmark
 
-This file provides the new development of Covid-19 stats. Where the original development took its data from the SSI Covid-19 Dashboard, this takes data in the form of the "raw" core data, and also revamps the order in which we present data.
+This file provides the new development of Covid-19 stats. Where the original development took its data from the SSI Covid-19 Dashboard, this takes data in the form of the "raw" core data.
 
-## Plots of interest
+One early important part of the process is to define a date range of interest. The current variant we are interested in is Omicron, so, we can focus on recent data, rather than the full period:
 
-TBD
+```{r cutoffs}
+```
 
-## Addendum: how data is read and handled
+## How data is read and handled
 
 The R site we are creating here uses a separate devleopment, `core.R` to read in and handle core data. This document then references into the core R development when needed for different code chunks. This allows us for easy scripting and exploration in the R session while also neatly handling dissemination in a document like this.
 
@@ -38,4 +39,14 @@ This data is easily read:
 ```{r read_m_cases_timeseries}
 ```
 
-However, as we see, the data isn't *tidy* (essentially on 3rd normal form). To fix this, we need to rearrange the data such that it is.
+However, as we see, the data is *messy* and not *tidy*. To make the data set tidy, we want to bring it on essentially 3rd normal form:
+
+```{r cleanup_m_cases_timeseries}
+```
+
+## Plots of interest
+
+### Cases in different municipalities
+
+```{r m_plot_cases, fig.height=12}
+```
