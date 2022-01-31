@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2022-01-28" />
+<meta name="date" content="2022-01-31" />
 
 <title>Covid-19 Stats for Denmark</title>
 
@@ -258,7 +258,7 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">Covid-19 Stats for Denmark</h1>
-<h4 class="date">2022-01-28</h4>
+<h4 class="date">2022-01-31</h4>
 
 </div>
 
@@ -305,7 +305,7 @@ $(document).ready(function () {
 <pre class="r"><code>library(tidyverse)
 library(lubridate)</code></pre>
 <p>SSI’s data is in a zip file. We unpack this zip file into a directory of the general form <code>YYYY-MM-DD</code>. Lets set up a name for the current directory we want to grab data from</p>
-<pre class="r"><code>date &lt;- &quot;2022-01-28&quot;</code></pre>
+<pre class="r"><code>date &lt;- &quot;2022-01-31&quot;</code></pre>
 </div>
 <div id="ingesting-data" class="section level2">
 <h2>Ingesting data</h2>
@@ -347,7 +347,7 @@ library(lubridate)</code></pre>
                                       ))</code></pre>
 <pre><code>## ℹ Using &quot;&#39;,&#39;&quot; as decimal and &quot;&#39;.&#39;&quot; as grouping mark. Use `read_delim()` for more control.</code></pre>
 <pre class="r"><code>data</code></pre>
-<pre><code>## # A tibble: 6,664 × 9
+<pre><code>## # A tibble: 6,698 × 9
 ##    Region      Prøvetagningsdato Køn   `Bekræftede tilfælde`  Døde Indlæggelser
 ##    &lt;fct&gt;       &lt;date&gt;            &lt;fct&gt;                 &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt;
 ##  1 Sjælland    2020-02-26        M                         1     0            0
@@ -360,7 +360,7 @@ library(lubridate)</code></pre>
 ##  8 Hovedstaden 2020-03-03        F                         1     0            0
 ##  9 Hovedstaden 2020-03-03        M                         3     0            1
 ## 10 Hovedstaden 2020-03-04        M                         2     0            0
-## # … with 6,654 more rows, and 3 more variables: Kummuleret antal døde &lt;dbl&gt;,
+## # … with 6,688 more rows, and 3 more variables: Kummuleret antal døde &lt;dbl&gt;,
 ## #   Kummuleret antal bekræftede tilfælde &lt;dbl&gt;,
 ## #   Kummuleret antal indlæggelser &lt;dbl&gt;</code></pre>
 <p>We certainly don’t want to work with danish-named columns. Rather, we want small descriptive names which are easy to type. We send our dataset through a <code>rename</code> pass for this.</p>
@@ -375,7 +375,7 @@ library(lubridate)</code></pre>
 # Cut the cumulative columns away
 data &lt;- data %&gt;% select(region, date, gender, cases, deaths, hospitalizations)
 data</code></pre>
-<pre><code>## # A tibble: 6,664 × 6
+<pre><code>## # A tibble: 6,698 × 6
 ##    region      date       gender cases deaths hospitalizations
 ##    &lt;fct&gt;       &lt;date&gt;     &lt;fct&gt;  &lt;dbl&gt;  &lt;dbl&gt;            &lt;dbl&gt;
 ##  1 Sjælland    2020-02-26 M          1      0                0
@@ -388,7 +388,7 @@ data</code></pre>
 ##  8 Hovedstaden 2020-03-03 F          1      0                0
 ##  9 Hovedstaden 2020-03-03 M          3      0                1
 ## 10 Hovedstaden 2020-03-04 M          2      0                0
-## # … with 6,654 more rows</code></pre>
+## # … with 6,688 more rows</code></pre>
 <p>Provide a low cut-off. We are interested in the recent period with Omicron, rather than the full duration of Covid-19.</p>
 <pre class="r"><code>lo_cutoff &lt;- &#39;2021-09-01&#39;</code></pre>
 <p>The high end of that cutoff, we set to two days before the maximal date in our data set</p>
@@ -402,7 +402,7 @@ data</code></pre>
 # Put this into the summary
 summary &lt;- data
 summary</code></pre>
-<pre><code>## # A tibble: 1,470 × 6
+<pre><code>## # A tibble: 1,500 × 6
 ##    region      date       gender cases deaths hospitalizations
 ##    &lt;fct&gt;       &lt;date&gt;     &lt;fct&gt;  &lt;dbl&gt;  &lt;dbl&gt;            &lt;dbl&gt;
 ##  1 Hovedstaden 2021-09-01 F        210      0                7
@@ -415,7 +415,7 @@ summary</code></pre>
 ##  8 Nordjylland 2021-09-01 M         16      1                2
 ##  9 Sjælland    2021-09-01 M         37      0                3
 ## 10 Syddanmark  2021-09-01 M         41      0                1
-## # … with 1,460 more rows</code></pre>
+## # … with 1,490 more rows</code></pre>
 </div>
 <div id="weekly-key-figures-split-by-age" class="section level3">
 <h3>Weekly key figures split by age</h3>
@@ -440,7 +440,7 @@ summary</code></pre>
                         tested = &#39;Antal testede&#39;,
                         cases = &#39;Antal positive&#39;)
 data</code></pre>
-<pre><code>## # A tibble: 913 × 7
+<pre><code>## # A tibble: 922 × 7
 ##    week     ageGroup tested_100k cases_100k hospitalized_100k tested cases
 ##    &lt;chr&gt;    &lt;fct&gt;          &lt;dbl&gt;      &lt;dbl&gt;             &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
 ##  1 2020-W04 00-02              0          0                 0      0     0
@@ -453,7 +453,7 @@ data</code></pre>
 ##  8 2020-W04 65-79              0          0                 0      0     0
 ##  9 2020-W04 80+                0          0                 0      0     0
 ## 10 2020-W05 65-79              0          0                 0      1     0
-## # … with 903 more rows</code></pre>
+## # … with 912 more rows</code></pre>
 <p>Take a look at the <code>week</code> column. It reports a year, and a week number. We’ll need to handle this, by converting this into a date. We’ll do that by defining a fixup function. If we have a string such as <code>2020-W04</code>, it means the 4th week of 2020. To get a date, we need a day inside the week to use as the day-of-week. So we turn the string into <code>2020-W04-1</code>, then send it through <code>strptime()</code>, a general time-parsing function.</p>
 <pre class="r"><code>fixup_week &lt;- function(s) {
     # For strptime to do its work correctly, it must know a day of the week. Here, we
@@ -506,15 +506,15 @@ data</code></pre>
 ##     lau1 name      `Bekræftede tilf… Incidens cases incidence tested tested_100k
 ##    &lt;dbl&gt; &lt;fct&gt;                 &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;       &lt;dbl&gt;
 ##  1   411 &quot;&quot;                        0       NA     0         0     87       95604
-##  2   101 &quot;Københa…            239966    37421 30030      4683 650873      101000
-##  3   147 &quot;Frederi…             36131    35014  4761      4614 110773      107000
-##  4   151 &quot;Balleru…             17199    34969  2776      5644  49701      101000
-##  5   153 &quot;Brøndby&quot;             14075    39494  1934      5427  35866      101000
-##  6   155 &quot;Dragør&quot;               4848    33187   671      4593  14435       98816
-##  7   157 &quot;Gentoft…             25197    34083  3920      5302  75303      102000
-##  8   159 &quot;Gladsax…             24561    35519  3689      5335  71381      103000
-##  9   161 &quot;Glostru…              8637    36882  1223      5222  24194      103000
-## 10   163 &quot;Herlev&quot;              11152    38746  1551      5389  29535      103000
+##  2   101 &quot;Københa…            247223    38552 26867      4190 651514      102000
+##  3   147 &quot;Frederi…             37264    36112  4233      4102 110889      107000
+##  4   151 &quot;Balleru…             17963    36523  2472      5026  49753      101000
+##  5   153 &quot;Brøndby&quot;             14550    40827  1669      4683  35904      101000
+##  6   155 &quot;Dragør&quot;               5051    34577   609      4169  14448       98905
+##  7   157 &quot;Gentoft…             26239    35493  3611      4884  75381      102000
+##  8   159 &quot;Gladsax…             25492    36866  3244      4691  71461      103000
+##  9   161 &quot;Glostru…              8998    38423  1055      4505  24220      103000
+## 10   163 &quot;Herlev&quot;              11587    40258  1337      4645  29577      103000
 ## # … with 89 more rows, and 3 more variables: tested_1w &lt;dbl&gt;,
 ## #   tested_100k_1w &lt;dbl&gt;, population &lt;dbl&gt;</code></pre>
 <pre class="r"><code>muncipalities &lt;- data</code></pre>
@@ -674,21 +674,23 @@ muncipalities$incidence_type &lt;- ifelse(muncipalities$incidence_z &lt; 0, &quo
 muncipalities$rate_z &lt;- round(muncipalities$rate - mean(muncipalities$rate), 5)
 muncipalities$rate_type &lt;- ifelse(muncipalities$rate_z &lt; 0, &quot;Below mean&quot;, &quot;Above mean&quot;)
 muncipalities$rate</code></pre>
-<pre><code>##  [1] 0.0000000 0.2546966 0.2635337 0.2526392 0.2585216 0.2177158 0.2750298
-##  [8] 0.2564120 0.2465229 0.2468173 0.2278686 0.2551936 0.2437158 0.2779493
-## [15] 0.2636730 0.2448602 0.2214997 0.2635468 0.2697283 0.2556962 0.2548182
-## [22] 0.2532814 0.2284916 0.2795987 0.2750176 0.2403885 0.2638960 0.2497003
-## [29] 0.2350136 0.2499597 0.2408814 0.2455225 0.2178007 0.2013339 0.2517114
-## [36] 0.2358185 0.2476535 0.2398479 0.2413771 0.2692232 0.2375024 0.2247392
-## [43] 0.1617464 0.2204593 0.2373086 0.2580363 0.1773546 0.2249392 0.2382516
-## [50] 0.2312203 0.2234411 0.2097100 0.2433784 0.2014649 0.2745452 0.1774676
-## [57] 0.1223022 0.2409320 0.2369770 0.1792464 0.1890392 0.2790316 0.1891892
-## [64] 0.3000853 0.2699974 0.1840599 0.2291432 0.2355291 0.2326360 0.2109519
-## [71] 0.2518011 0.2290137 0.1923182 0.2090747 0.2628367 0.2288136 0.2765057
-## [78] 0.2137834 0.2624629 0.2619204 0.1538462 0.2807601 0.2833153 0.2209245
-## [85] 0.2268786 0.2155477 0.2041551 0.2084106 0.2175727 0.2194897 0.2441131
-## [92] 0.2403178 0.2164103 0.1183099 0.2490073 0.2416322 0.2183951 0.2433406
-## [99] 0.2787903</code></pre>
+<pre><code>##  [1] 0.00000000 0.26045777 0.26564167 0.25471406 0.26209171 0.22242513
+##  [7] 0.28020486 0.26119163 0.24241728 0.24995326 0.23012552 0.25359954
+## [13] 0.24467386 0.29835600 0.25210421 0.24287889 0.23494467 0.27686436
+## [19] 0.29217251 0.27763088 0.27326057 0.27237703 0.24639570 0.29990310
+## [25] 0.28959141 0.25849742 0.28028478 0.25736505 0.24796313 0.26152498
+## [31] 0.25362399 0.26879227 0.22994142 0.21317910 0.25953182 0.25321888
+## [37] 0.25956173 0.25460829 0.25879329 0.27658662 0.25029036 0.24879957
+## [43] 0.17806399 0.24354755 0.24084428 0.26569706 0.18767479 0.25645945
+## [49] 0.27871736 0.26018166 0.23957920 0.23387097 0.25531018 0.22995301
+## [55] 0.29563492 0.20521487 0.15572034 0.27039183 0.26749397 0.20363379
+## [61] 0.20959226 0.29373890 0.20318021 0.31514949 0.30510093 0.20016712
+## [67] 0.25083918 0.25973158 0.26544260 0.22459597 0.27830847 0.24022689
+## [73] 0.22215308 0.23598245 0.28337072 0.25334821 0.29407544 0.23463548
+## [79] 0.28539703 0.28927819 0.19298246 0.30969179 0.29983102 0.25168854
+## [85] 0.25508623 0.24421624 0.24049117 0.23562300 0.23860846 0.24319508
+## [91] 0.25991832 0.25666118 0.24733542 0.09876543 0.28680721 0.27545951
+## [97] 0.24898236 0.26888945 0.30287721</code></pre>
 <pre class="r"><code>ggplot(muncipalities %&gt;% mutate(name = fct_reorder(name, rate)), aes(x=name, y=rate)) +
   geom_bar(stat=&#39;identity&#39;, aes(fill=rate_type), width=.5)  +
   scale_colour_brewer(palette=&quot;Set2&quot;) +
@@ -748,15 +750,15 @@ popcount</code></pre>
 ##    name            incidence popcount
 ##    &lt;chr&gt;               &lt;dbl&gt;    &lt;dbl&gt;
 ##  1 &quot;&quot;                      0       NA
-##  2 &quot;København&quot;          4683   644987
-##  3 &quot;Frederiksberg&quot;      4614   103963
-##  4 &quot;Ballerup&quot;           5644    49228
-##  5 &quot;Brøndby&quot;            5427    35535
-##  6 &quot;Dragør&quot;             4593    14602
-##  7 &quot;Gentofte&quot;           5302    74154
-##  8 &quot;Gladsaxe&quot;           5335    69321
-##  9 &quot;Glostrup&quot;           5222    23519
-## 10 &quot;Herlev&quot;             5389    28861
+##  2 &quot;København&quot;          4190   644987
+##  3 &quot;Frederiksberg&quot;      4102   103963
+##  4 &quot;Ballerup&quot;           5026    49228
+##  5 &quot;Brøndby&quot;            4683    35535
+##  6 &quot;Dragør&quot;             4169    14602
+##  7 &quot;Gentofte&quot;           4884    74154
+##  8 &quot;Gladsaxe&quot;           4691    69321
+##  9 &quot;Glostrup&quot;           4505    23519
+## 10 &quot;Herlev&quot;             4645    28861
 ## # … with 89 more rows</code></pre>
 <p>Now, test correlation via Pearson:</p>
 <pre class="r"><code>plot(muncipalities$incidence, muncipalities$popcount)</code></pre>
@@ -766,13 +768,13 @@ popcount</code></pre>
 ##  Pearson&#39;s product-moment correlation
 ## 
 ## data:  muncipalities$incidence and muncipalities$popcount
-## t = 1.1539, df = 92, p-value = 0.2515
+## t = 0.86295, df = 92, p-value = 0.3904
 ## alternative hypothesis: true correlation is not equal to 0
 ## 95 percent confidence interval:
-##  -0.0852416  0.3144455
+##  -0.1151003  0.2870124
 ## sample estimates:
-##       cor 
-## 0.1194382</code></pre>
+##        cor 
+## 0.08960639</code></pre>
 <p>Clearly, this argues there are no strong connection between population count, and the incidence in a given muncipality.</p>
 <p>Analyzing the rate shows there’s a connection between it and incidence, but this is more expected:</p>
 <pre class="r"><code>pairs(muncipalities %&gt;% select(incidence,popcount,rate))</code></pre>
@@ -782,17 +784,17 @@ popcount</code></pre>
 ##  Pearson&#39;s product-moment correlation
 ## 
 ## data:  muncipalities$incidence and muncipalities$rate
-## t = 13.996, df = 97, p-value &lt; 2.2e-16
+## t = 13.61, df = 97, p-value &lt; 2.2e-16
 ## alternative hypothesis: true correlation is not equal to 0
 ## 95 percent confidence interval:
-##  0.7398504 0.8741063
+##  0.7293701 0.8686262
 ## sample estimates:
-##      cor 
-## 0.817816</code></pre>
+##       cor 
+## 0.8101338</code></pre>
 <p>Summarize:</p>
 <pre class="r"><code>summary(muncipalities$rate)</code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##  0.0000  0.2181  0.2403  0.2326  0.2554  0.3001</code></pre>
+##  0.0000  0.2399  0.2547  0.2504  0.2728  0.3151</code></pre>
 <pre class="r"><code>d &lt;- density(muncipalities$rate)
 plot(d)</code></pre>
 <p><img src="index_files/figure-html/muncipality-summary-1.png" width="672" /></p>
