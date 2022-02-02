@@ -399,9 +399,9 @@ municipality</code></pre>
 <p>Furthermore, the we have few observations from island-data. Because of this, it is wise to filter them out, so we can get a better picture of the remaining municipalities. Split off these data sets into their own:</p>
 <pre class="r"><code>islands &lt;- c(&quot;Christiansø&quot;, &quot;Fanø&quot;, &quot;Læsø&quot;, &quot;Samsø&quot;)
 municipality_islands &lt;- municipality %&gt;% filter(Municipality %in% islands)
-municipality &lt;- municipality %&gt;% filter(!Municipality %in% islands)</code></pre>
+municipality_ml &lt;- municipality %&gt;% filter(!Municipality %in% islands)</code></pre>
 <p>Plot for the “mainland”</p>
-<pre class="r"><code>p &lt;- ggplot(municipality %&gt;% filter(date &gt; low_cutoff, date &lt;= high_cutoff, Municipality != &#39;NA&#39;),
+<pre class="r"><code>p &lt;- ggplot(municipality_ml %&gt;% filter(date &gt; low_cutoff, date &lt;= high_cutoff, Municipality != &#39;NA&#39;),
             aes(date, forcats::fct_rev(Municipality), fill=Cases/Tested))
 p + geom_tile() +
     scale_fill_continuous(type = &quot;viridis&quot;) +
@@ -422,6 +422,18 @@ p + geom_tile() +
          x=&quot;Date&quot;,
          y = &quot;Municipality&quot;)</code></pre>
 <p><img src="core_files/figure-html/m_plot_rate_islands-1.png" width="672" /></p>
+<p>Country-wide tests, cases, positive-rate</p>
+<pre class="r"><code>m_summary &lt;- municipality %&gt;% group_by(date) %&gt;% summarize(Cases = sum(Cases), Tested = sum(Tested))
+m_summary &lt;- m_summary %&gt;% pivot_longer(-date, names_to=&quot;type&quot;, values_to=&quot;value&quot;)
+
+p &lt;- ggplot(m_summary %&gt;% filter(date &lt;= high_cutoff), aes(x=date, y=value, color=type))
+p + geom_point(alpha=.5) +
+    geom_smooth(method = &#39;loess&#39;, span = .3) +
+    scale_colour_brewer(palette=&quot;Set2&quot;) +
+    labs(title = &quot;Trendline for Covid-19 cases in Denmark&quot;,
+         caption = &quot;Source: ssi.dk&quot;)</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="core_files/figure-html/m_summarize-1.png" width="672" /></p>
 </div>
 </div>
 </div>

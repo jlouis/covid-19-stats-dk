@@ -45,10 +45,10 @@ high_cutoff <- max(municipality$date) - days(2)
 # ---- m_split_off_islands
 islands <- c("Christiansø", "Fanø", "Læsø", "Samsø")
 municipality_islands <- municipality %>% filter(Municipality %in% islands)
-municipality <- municipality %>% filter(!Municipality %in% islands)
+municipality_ml <- municipality %>% filter(!Municipality %in% islands)
 
 # ---- m_plot_rate
-p <- ggplot(municipality %>% filter(date > low_cutoff, date <= high_cutoff, Municipality != 'NA'),
+p <- ggplot(municipality_ml %>% filter(date > low_cutoff, date <= high_cutoff, Municipality != 'NA'),
             aes(date, forcats::fct_rev(Municipality), fill=Cases/Tested))
 p + geom_tile() +
     scale_fill_continuous(type = "viridis") +
@@ -68,3 +68,15 @@ p + geom_tile() +
          caption = "Source: ssi.dk",
          x="Date",
          y = "Municipality")
+
+# ---- m_summarize
+m_summary <- municipality %>% group_by(date) %>% summarize(Cases = sum(Cases), Tested = sum(Tested))
+m_summary <- m_summary %>% pivot_longer(-date, names_to="type", values_to="value")
+
+p <- ggplot(m_summary %>% filter(date <= high_cutoff), aes(x=date, y=value, color=type))
+p + geom_point(alpha=.5) +
+    geom_smooth(method = 'loess', span = .3) +
+    scale_colour_brewer(palette="Set2") +
+    labs(title = "Trendline for Covid-19 cases in Denmark",
+         caption = "Source: ssi.dk")
+

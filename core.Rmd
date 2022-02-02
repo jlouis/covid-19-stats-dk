@@ -89,3 +89,7 @@ Plot for the islands
 
 ```{r m_plot_rate_islands}
 ```
+
+Country-wide tests, cases, positive-rate
+```{r m_summarize}
+```
