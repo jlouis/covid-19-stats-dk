@@ -42,14 +42,29 @@ municipality
 # ---- m_high_cutoff
 high_cutoff <- max(municipality$date) - days(2)
 
-# ---- m_plot_cases
+# ---- m_split_off_islands
+islands <- c("Christiansø", "Fanø", "Læsø", "Samsø")
+municipality_islands <- municipality %>% filter(Municipality %in% islands)
+municipality <- municipality %>% filter(!Municipality %in% islands)
+
+# ---- m_plot_rate
 p <- ggplot(municipality %>% filter(date > low_cutoff, date <= high_cutoff, Municipality != 'NA'),
             aes(date, forcats::fct_rev(Municipality), fill=Cases/Tested))
 p + geom_tile() +
     scale_fill_continuous(type = "viridis") +
-    labs(title = "Positive Rate split by Municipality",
+    labs(title = "Positive Rate split by Municipality (Excluding Islands)",
          subtitle = "Christmas contributes to positive rate",
          caption = "Source: ssi.dk",
          x="Date",
          y = "Municipality")
 
+# ---- m_plot_rate_islands
+p <- ggplot(municipality_islands %>% filter(date > low_cutoff, date <= high_cutoff, Municipality != 'NA'),
+            aes(date, forcats::fct_rev(Municipality), fill=Cases/Tested))
+p + geom_tile() +
+    scale_fill_continuous(type = "viridis") +
+    labs(title = "Positive Rate split by Municipality (Islands only)",
+         subtitle = "Christmas contributes to positive rate",
+         caption = "Source: ssi.dk",
+         x="Date",
+         y = "Municipality")

@@ -75,5 +75,17 @@ Generally, the most recent observations in the data sets are flawed. Their count
 ```{r m_high_cutoff}
 ```
 
-```{r m_plot_cases, fig.height=12}
+Furthermore, the we have few observations from island-data. Because of this, it is wise to filter them out, so we can get a better picture of the remaining municipalities. Split off these data sets into their own:
+
+```{r m_split_off_islands}
+```
+
+Plot for the "mainland"
+
+```{r m_plot_rate, fig.height=12}
+```
+
+Plot for the islands
+
+```{r m_plot_rate_islands}
 ```
