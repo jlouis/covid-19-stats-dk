@@ -47,5 +47,9 @@ p <- ggplot(municipality %>% filter(date > low_cutoff, date <= high_cutoff, Muni
             aes(date, forcats::fct_rev(Municipality), fill=Cases/Tested))
 p + geom_tile() +
     scale_fill_continuous(type = "viridis") +
-    labs(title = "Positive Rate split by Municipality", subtitle = "", caption = "Source: ssi.dk", x="Date", y = "Municipality")
+    labs(title = "Positive Rate split by Municipality",
+         subtitle = "Christmas contributes to positive rate",
+         caption = "Source: ssi.dk",
+         x="Date",
+         y = "Municipality")
 
