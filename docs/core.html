@@ -271,7 +271,8 @@ $(document).ready(function () {
 <ul>
 <li><a href="#how-data-is-read-and-handled">How data is read and handled</a>
 <ul>
-<li><a href="#municipality-cases-as-a-time-series">Municipality cases as a time series</a></li>
+<li><a href="#case-estimation-of-rt">Case Estimation of R<sub>t</sub></a></li>
+<li><a href="#municipality-cases-and-tests-as-a-time-series">Municipality cases and tests as a time series</a></li>
 </ul></li>
 <li><a href="#plots-of-interest">Plots of interest</a>
 <ul>
@@ -285,29 +286,45 @@ $(document).ready(function () {
 <h1>Covid 19 Stats for Denmark</h1>
 <p>This file provides the new development of Covid-19 stats. Where the original development took its data from the SSI Covid-19 Dashboard, this takes data in the form of the “raw” core data.</p>
 <p>One early important part of the process is to define a date range of interest. The current variant we are interested in is Omicron, so, we can focus on recent data, rather than the full period:</p>
-<pre class="r"><code>low_cutoff &lt;- &quot;2021-09-01&quot;</code></pre>
+<pre class="r"><code>low_cutoff &lt;- &quot;2021-12-01&quot;</code></pre>
+<p>Likewise, some files contain a date at which they were produced. For instance the estimation of R<sub>t</sub>:</p>
+<pre class="r"><code>rt_date &lt;- &quot;2022_02_01&quot;</code></pre>
 <div id="how-data-is-read-and-handled" class="section level2">
 <h2>How data is read and handled</h2>
 <p>The R site we are creating here uses a separate devleopment, <code>core.R</code> to read in and handle core data. This document then references into the core R development when needed for different code chunks. This allows us for easy scripting and exploration in the R session while also neatly handling dissemination in a document like this.</p>
 <p>We first need a couple of libraries</p>
+<pre class="r"><code>library(tidyverse)
+library(lubridate)</code></pre>
 <p>Where the Dashboard data is stored in ISO8859-1 format, the core data is already in UTF-8. So they are way easier to read. We can just point tidyverse’s <code>readr</code> package directly to the data at hand. Start by setting up a core path</p>
 <pre class="r"><code>path &lt;- &quot;./data/core&quot;</code></pre>
-<div id="municipality-cases-as-a-time-series" class="section level3">
-<h3>Municipality cases as a time series</h3>
+<div id="case-estimation-of-rt" class="section level3">
+<h3>Case Estimation of R<sub>t</sub></h3>
+<p>Read in the R<sub>t</sub> case estimation data</p>
+<pre class="r"><code>rt_cases_path &lt;- sprintf(&quot;%s/Rt_cases_%s.csv&quot;, path, rt_date)
+rt_cases &lt;- readr::read_csv2(rt_cases_path)
+rt_cases</code></pre>
+<pre><code>## # A tibble: 668 × 4
+##    SampleDate estimate uncertainty_lower uncertainty_upper
+##    &lt;date&gt;        &lt;dbl&gt;             &lt;dbl&gt;             &lt;dbl&gt;
+##  1 2020-03-26      0.9               0.6               1.1
+##  2 2020-03-27      0.9               0.6               1.1
+##  3 2020-03-28      0.8               0.6               1  
+##  4 2020-03-29      0.8               0.6               1  
+##  5 2020-03-30      0.8               0.6               1  
+##  6 2020-03-31      0.8               0.6               1  
+##  7 2020-04-01      0.8               0.6               1  
+##  8 2020-04-02      0.8               0.6               0.9
+##  9 2020-04-03      0.8               0.6               1  
+## 10 2020-04-04      0.8               0.6               1  
+## # … with 658 more rows</code></pre>
+</div>
+<div id="municipality-cases-and-tests-as-a-time-series" class="section level3">
+<h3>Municipality cases and tests as a time series</h3>
 <p>This data is easily read:</p>
 <pre class="r"><code>m_cases_timeseries_path &lt;- sprintf(&quot;%s/Municipality_cases_time_series.csv&quot;, path)
-m_cases_timeseries &lt;- readr::read_csv2(m_cases_timeseries_path)</code></pre>
-<pre><code>## ℹ Using &quot;&#39;,&#39;&quot; as decimal and &quot;&#39;.&#39;&quot; as grouping mark. Use `read_delim()` for more control.</code></pre>
-<pre><code>## Rows: 705 Columns: 101</code></pre>
-<pre><code>## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;;&quot;
-## dbl  (100): Roskilde, Copenhagen, Aarhus, Frederiksberg, Kalundborg, Middelf...
-## date   (1): SampleDate</code></pre>
-<pre><code>## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>m_cases_timeseries</code></pre>
-<pre><code>## # A tibble: 705 × 101
+m_cases_timeseries &lt;- readr::read_csv2(m_cases_timeseries_path)
+m_cases_timeseries</code></pre>
+<pre><code>## # A tibble: 706 × 101
 ##    SampleDate Roskilde Copenhagen Aarhus Frederiksberg Kalundborg Middelfart
 ##    &lt;date&gt;        &lt;dbl&gt;      &lt;dbl&gt;  &lt;dbl&gt;         &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
 ##  1 2020-02-26        1          0      0             0          0          0
@@ -320,7 +337,7 @@ m_cases_timeseries &lt;- readr::read_csv2(m_cases_timeseries_path)</code></pre>
 ##  8 2020-03-05        0          2      0             2          0          0
 ##  9 2020-03-06        0          0      0             0          0          0
 ## 10 2020-03-07        0          1      1             1          0          0
-## # … with 695 more rows, and 94 more variables: Gentofte &lt;dbl&gt;, Solrød &lt;dbl&gt;,
+## # … with 696 more rows, and 94 more variables: Gentofte &lt;dbl&gt;, Solrød &lt;dbl&gt;,
 ## #   Allerød &lt;dbl&gt;, Dragør &lt;dbl&gt;, Helsingør &lt;dbl&gt;, Hillerød &lt;dbl&gt;,
 ## #   Rudersdal &lt;dbl&gt;, Næstved &lt;dbl&gt;, Aalborg &lt;dbl&gt;, Vallensbæk &lt;dbl&gt;,
 ## #   Esbjerg &lt;dbl&gt;, Favrskov &lt;dbl&gt;, Frederikssund &lt;dbl&gt;, Furesø &lt;dbl&gt;,
@@ -329,10 +346,12 @@ m_cases_timeseries &lt;- readr::read_csv2(m_cases_timeseries_path)</code></pre>
 ## #   Egedal &lt;dbl&gt;, Faxe &lt;dbl&gt;, Fredericia &lt;dbl&gt;, Faaborg-Midtfyn &lt;dbl&gt;, …</code></pre>
 <p>However, as we see, the data is <em>messy</em> and not <em>tidy</em>. To make the data set tidy, we want to bring it on essentially 3rd normal form:</p>
 <pre class="r"><code>m_cases_timeseries &lt;- m_cases_timeseries %&gt;%
-  pivot_longer(cols = -c(`SampleDate`), names_to=&quot;Municipality&quot;, values_to=&quot;Cases&quot;)
+  pivot_longer(cols = -c(`SampleDate`), names_to=&quot;Municipality&quot;, values_to=&quot;Cases&quot;) %&gt;%
+  rename(date = `SampleDate`)
+
 m_cases_timeseries</code></pre>
-<pre><code>## # A tibble: 70,500 × 3
-##    SampleDate Municipality  Cases
+<pre><code>## # A tibble: 70,600 × 3
+##    date       Municipality  Cases
 ##    &lt;date&gt;     &lt;chr&gt;         &lt;dbl&gt;
 ##  1 2020-02-26 Roskilde          1
 ##  2 2020-02-26 Copenhagen        0
@@ -344,14 +363,41 @@ m_cases_timeseries</code></pre>
 ##  8 2020-02-26 Solrød            0
 ##  9 2020-02-26 Allerød           0
 ## 10 2020-02-26 Dragør            0
-## # … with 70,490 more rows</code></pre>
+## # … with 70,590 more rows</code></pre>
+<p>We use the same strategy for the tests:</p>
+<pre class="r"><code>m_tested_timeseries_path &lt;- sprintf(&quot;%s/Municipality_tested_persons_time_series.csv&quot;, path)
+m_tested_timeseries &lt;- readr::read_csv2(m_tested_timeseries_path)
+m_tested_timeseries &lt;- m_tested_timeseries %&gt;%
+  pivot_longer(cols = -c(`PrDate_adjusted`), names_to=&quot;Municipality&quot;, values_to=&quot;Tested&quot;) %&gt;%
+  rename(date = `PrDate_adjusted`)</code></pre>
+<p>Since these two tibbles are storing the same data, we can join them:</p>
+<pre class="r"><code>municipality &lt;- m_cases_timeseries %&gt;% left_join(m_tested_timeseries, by = c(&quot;date&quot;, &quot;Municipality&quot;))
+municipality &lt;- municipality %&gt;% mutate(Municipality = factor(Municipality))
+municipality</code></pre>
+<pre><code>## # A tibble: 70,600 × 4
+##    date       Municipality  Cases Tested
+##    &lt;date&gt;     &lt;fct&gt;         &lt;dbl&gt;  &lt;dbl&gt;
+##  1 2020-02-26 Roskilde          1      3
+##  2 2020-02-26 Copenhagen        0      4
+##  3 2020-02-26 Aarhus            0      2
+##  4 2020-02-26 Frederiksberg     0      1
+##  5 2020-02-26 Kalundborg        0      0
+##  6 2020-02-26 Middelfart        0      0
+##  7 2020-02-26 Gentofte          0      0
+##  8 2020-02-26 Solrød            0      0
+##  9 2020-02-26 Allerød           0      0
+## 10 2020-02-26 Dragør            0      0
+## # … with 70,590 more rows</code></pre>
 </div>
 </div>
 <div id="plots-of-interest" class="section level2">
 <h2>Plots of interest</h2>
 <div id="cases-in-different-municipalities" class="section level3">
 <h3>Cases in different municipalities</h3>
-<pre class="r"><code>p &lt;- ggplot(m_cases_timeseries %&gt;% filter(SampleDate &gt; low_cutoff), aes(x=SampleDate, y=Municipality, fill=Cases, height=0.8))
+<p>Generally, the most recent observations in the data sets are flawed. Their counts tend to increase over time as data is reported into the central register. Hence, it is wise to cut these data from the data set and look at the remaining data instead.</p>
+<pre class="r"><code>high_cutoff &lt;- max(municipality$date) - days(2)</code></pre>
+<pre class="r"><code>p &lt;- ggplot(municipality %&gt;% filter(date &gt; low_cutoff, date &lt;= high_cutoff, Municipality != &#39;NA&#39;),
+            aes(date, forcats::fct_rev(Municipality), fill=Cases/Tested))
 p + geom_tile() +
     scale_fill_continuous(type = &quot;viridis&quot;) +
     labs(title = &quot;Cases split by Municipality&quot;, subtitle = &quot;&quot;, caption = &quot;Source: ssi.dk&quot;, x=&quot;Date&quot;, y = &quot;Municipality&quot;)</code></pre>

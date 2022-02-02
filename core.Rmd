@@ -18,13 +18,18 @@ One early important part of the process is to define a date range of interest. T
 ```{r cutoffs}
 ```
 
+Likewise, some files contain a date at which they were produced. For instance the estimation of R~t~:
+
+```{r dates}
+```
+
 ## How data is read and handled
 
 The R site we are creating here uses a separate devleopment, `core.R` to read in and handle core data. This document then references into the core R development when needed for different code chunks. This allows us for easy scripting and exploration in the R session while also neatly handling dissemination in a document like this.
 
 We first need a couple of libraries
 
-```{r libraries, message=FALSE, echo = FALSE}
+```{r libraries, message=FALSE}
 ```
 
 Where the Dashboard data is stored in ISO8859-1 format, the core data is already in UTF-8. So they are way easier to read. We can just point tidyverse's `readr` package directly to the data at hand. Start by setting up a core path
@@ -32,11 +37,18 @@ Where the Dashboard data is stored in ISO8859-1 format, the core data is already
 ```{r where_we_are}
 ```
 
-### Municipality cases as a time series
+### Case Estimation of R~t~
+
+Read in the R~t~ case estimation data
+
+```{r read_rt, message=FALSE}
+```
+
+### Municipality cases and tests as a time series
 
 This data is easily read:
 
-```{r read_m_cases_timeseries}
+```{r read_m_cases_timeseries, message = FALSE}
 ```
 
 However, as we see, the data is *messy* and not *tidy*. To make the data set tidy, we want to bring it on essentially 3rd normal form:
@@ -44,9 +56,24 @@ However, as we see, the data is *messy* and not *tidy*. To make the data set tid
 ```{r cleanup_m_cases_timeseries}
 ```
 
+We use the same strategy for the tests:
+
+```{r read_m_tested_timeseries, message = FALSE}
+```
+
+Since these two tibbles are storing the same data, we can join them:
+
+```{r join_m_timeseries}
+```
+
 ## Plots of interest
 
 ### Cases in different municipalities
+
+Generally, the most recent observations in the data sets are flawed. Their counts tend to increase over time as data is reported into the central register. Hence, it is wise to cut these data from the data set and look at the remaining data instead.
+
+```{r m_high_cutoff}
+```
 
 ```{r m_plot_cases, fig.height=12}
 ```
