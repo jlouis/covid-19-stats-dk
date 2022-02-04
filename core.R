@@ -71,6 +71,13 @@ p + geom_tile() +
 
 # ---- m_summarize
 m_summary <- municipality %>% group_by(date) %>% summarize(Cases = sum(Cases), Tested = sum(Tested))
+p <- ggplot(m_summary %>% filter(date > low_cutoff, date <= high_cutoff), aes(x=date, y=Cases/Tested))
+p + geom_point(alpha=.5) +
+    geom_smooth(method = 'loess', span = .3) +
+    scale_colour_brewer(palette="Set2") +
+    labs(title = "Trendline for Covid-19 positive rate in Denmark",
+         caption = "Source: ssi.dk")
+
 m_summary <- m_summary %>% pivot_longer(-date, names_to="type", values_to="value")
 
 p <- ggplot(m_summary %>% filter(date <= high_cutoff), aes(x=date, y=value, color=type))
@@ -80,3 +87,131 @@ p + geom_point(alpha=.5) +
     labs(title = "Trendline for Covid-19 cases in Denmark",
          caption = "Source: ssi.dk")
 
+
+# ---- regional_area_vectors
+nordjylland <- c("Brønderslev",
+                 "Frederikshavn",
+                 "Hjørring",
+                 "Jammerbugt",
+                 "Læsø",
+                 "Mariagerfjord",
+                 "Morsø",
+                 "Rebild",
+                 "Thisted",
+                 "Vesthimmerlands",
+                 "Aalborg")
+
+midtjylland <- c("Favrskov",
+                 "Hedensted",
+                 "Herning",
+                 "Holstebro",
+                 "Horsens",
+                 "Ikast-Brande",
+                 "Lemvig",
+                 "Norddjurs",
+                 "Odder",
+                 "Randers",
+                 "Ringkøbing-Skjern",
+                 "Samsø",
+                 "Silkeborg",
+                 "Skanderborg",
+                 "Skive",
+                 "Struer",
+                 "Syddjurs",
+                 "Viborg",
+                 "Aarhus",
+                 "Århus")
+
+syddanmark <- c("Assens",
+                "Billund",
+                "Esbjerg",
+                "Fanø",
+                "Fredericia",
+                "Faaborg-Midtfyn",
+                "Haderslev",
+                "Kerteminde",
+                "Kolding",
+                "Langeland",
+                "Middelfart",
+                "Nordfyns",
+                "Nyborg",
+                "Odense",
+                "Svendborg",
+                "Sønderborg",
+                "Tønder",
+                "Varde",
+                "Vejen",
+                "Vejle",
+                "Ærø",
+                "Aabenraa")
+
+sjælland <- c("Faxe",
+              "Greve",
+              "Guldborgsund",
+              "Holbæk",
+              "Kalundborg",
+              "Køge",
+              "Lejre",
+              "Lolland",
+              "Næstved",
+              "Odsherred",
+              "Ringsted",
+              "Roskilde",
+              "Slagelse",
+              "Solrød",
+              "Sorø",
+              "Stevns",
+              "Vordingborg")
+
+hovedstaden <- c("Copenhagen",
+                 "Albertslund",
+                 "Allerød",
+                 "Ballerup",
+                 "Bornholm",
+                 "Brøndby",
+                 "Dragør",
+                 "Egedal",
+                 "Fredensborg",
+                 "Frederiksberg",
+                 "Frederikssund",
+                 "Furesø",
+                 "Gentofte",
+                 "Gladsaxe",
+                 "Glostrup",
+                 "Gribskov",
+                 "Halsnæs",
+                 "Helsingør",
+                 "Herlev",
+                 "Hillerød",
+                 "Hvidovre",
+                 "Høje-Taastrup",
+                 "Hørsholm",
+                 "Ishøj",
+                 "København",
+                 "Lyngby-Taarbæk",
+                 "Rudersdal",
+                 "Rødovre",
+                 "Tårnby",
+                 "Vallensbæk")
+
+# ---- region_mapping
+regions <- union(
+  tibble(Municipality = nordjylland, Region = "Nordjylland"),
+  tibble(Municipality = midtjylland, Region = "Midtjylland"))
+regions <- union(regions, tibble(Municipality = syddanmark,  Region = "Syddanmark"))
+regions <- union(regions, tibble(Municipality = sjælland,    Region = "Sjælland"))
+regions <- union(regions, tibble(Municipality = hovedstaden, Region = "Hovedstaden"))
+regions
+
+# ---- region_split
+municipality_ml <- municipality_ml %>% left_join(regions, by = c("Municipality"))
+p <- ggplot(municipality_ml %>% filter(date > low_cutoff, date <= high_cutoff, Municipality != 'NA'),
+            aes(date, forcats::fct_rev(Municipality), fill=Cases/Tested))
+p + geom_tile() +
+    scale_fill_continuous(type = "viridis") +
+    facet_wrap(. ~ Region, scales="free") +
+    labs(title = "Positive Rate split by Region/Municipality (Excluding Islands)",
+         subtitle = "Christmas contributes to positive rate",
+         caption = "Source: ssi.dk",
+         x="Date",
+         y = "Municipality")

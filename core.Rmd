@@ -93,3 +93,18 @@ Plot for the islands
 Country-wide tests, cases, positive-rate
 ```{r m_summarize}
 ```
+
+### Regions
+
+Municipalities are grouped by region, which are defined by the following vectors:
+```{r regional_area_vectors}
+```
+
+Once we have the vectors, we can construct a tibble from them:
+
+```{r region_mapping}
+```
+
+And joining that tibble to our data, we can plot per region
+```{r region_split, fig.height=12, fig.width=16}
+```
