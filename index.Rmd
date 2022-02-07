@@ -1,6 +1,6 @@
 ---
 title: "Covid-19 Stats for Denmark"
-date: 2022-02-04
+date: 2022-02-07
 output:
   html_document:
     toc: true
@@ -40,7 +40,7 @@ general form `YYYY-MM-DD`. Lets set up a name for the current directory we
 want to grab data from
 
 ```{r constants}
-date <- "2022-02-04"
+date <- "2022-02-07"
 ```
 
 ## Ingesting data
@@ -439,6 +439,21 @@ plot_regions <- function(p, title, subtitle) {
 p <- ggplot(regions, aes(x=date, y=cases))
 plot_regions(p, "Regional split of cases, DK",
                 "Copenhagen-general area (Hovedstaden) contributes most of the noise")
+```
+
+We can also visualize regional new hospitalizations:
+
+```{r regional-hospitalizations}
+p <- ggplot(regions, aes(x=date, y=hospitalizations))
+p + geom_point(aes(color=region), size=.5) +
+    facet_grid(rows=vars(region)) +
+    scale_colour_brewer(palette="Set2") +
+    labs(title = "Regional split of Hospitalizations, DK",
+         subtitle = "Copenhagen-general area (Hovedstaden) contributes most of the noise",
+         caption = "Source: ssi.dk",
+         x = "Date",
+         y = "Detected Cases")
+
 ```
 
 ## Weekly data
