@@ -215,3 +215,16 @@ p + geom_tile() +
          caption = "Source: ssi.dk",
          x="Date",
          y = "Municipality")
+
+# ---- region_split_rate
+region_summary <- municipality_ml %>%
+  group_by(date, Region) %>%
+  summarize(Cases = sum(Cases), Tested = sum(Tested))
+region_summary <- region_summary %>% filter(Region != 'NA')
+p <- ggplot(region_summary %>% filter(date > low_cutoff, date <= high_cutoff), aes(x=date, y=Cases/Tested, color=Region))
+p + geom_point(alpha=.5) +
+    geom_smooth(method = 'loess', span = .3) +
+    scale_colour_brewer(palette="Set2") +
+    facet_wrap(. ~ Region) +
+    labs(title = "Trendline for Covid-19 positive rate per Region, DK",
+         caption = "Source: ssi.dk")

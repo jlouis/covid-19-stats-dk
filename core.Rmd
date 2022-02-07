@@ -108,3 +108,7 @@ Once we have the vectors, we can construct a tibble from them:
 And joining that tibble to our data, we can plot per region
 ```{r region_split, fig.height=12, fig.width=16}
 ```
+
+Finally, we can plot positive rate for each region
+```{r region_split_rate, fig.height=12, fig.width=16}
+```

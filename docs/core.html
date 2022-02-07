@@ -586,6 +586,21 @@ p + geom_tile() +
          x=&quot;Date&quot;,
          y = &quot;Municipality&quot;)</code></pre>
 <p><img src="core_files/figure-html/region_split-1.png" width="1536" /></p>
+<p>Finally, we can plot positive rate for each region</p>
+<pre class="r"><code>region_summary &lt;- municipality_ml %&gt;%
+  group_by(date, Region) %&gt;%
+  summarize(Cases = sum(Cases), Tested = sum(Tested))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;date&#39;. You can override using the `.groups` argument.</code></pre>
+<pre class="r"><code>region_summary &lt;- region_summary %&gt;% filter(Region != &#39;NA&#39;)
+p &lt;- ggplot(region_summary %&gt;% filter(date &gt; low_cutoff, date &lt;= high_cutoff), aes(x=date, y=Cases/Tested, color=Region))
+p + geom_point(alpha=.5) +
+    geom_smooth(method = &#39;loess&#39;, span = .3) +
+    scale_colour_brewer(palette=&quot;Set2&quot;) +
+    facet_wrap(. ~ Region) +
+    labs(title = &quot;Trendline for Covid-19 positive rate per Region, DK&quot;,
+         caption = &quot;Source: ssi.dk&quot;)</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="core_files/figure-html/region_split_rate-1.png" width="1536" /></p>
 </div>
 </div>
 </div>
