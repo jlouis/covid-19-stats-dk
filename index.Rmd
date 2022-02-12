@@ -1,6 +1,6 @@
 ---
 title: "Covid-19 Stats for Denmark"
-date: 2022-02-09
+date: 2022-02-11
 output:
   html_document:
     toc: true
@@ -40,7 +40,7 @@ general form `YYYY-MM-DD`. Lets set up a name for the current directory we
 want to grab data from
 
 ```{r constants}
-date <- "2022-02-09"
+date <- "2022-02-11"
 ```
 
 ## Ingesting data
@@ -100,7 +100,7 @@ In the following we use the following types:
 data <- read_data(file, col_types=cols('Region' = col_factor(),
                                        'Prøvetagningsdato' = col_date(),
                                        'Køn' = col_factor(),
-                                       'Bekræftede tilfælde' = col_double(),
+                                       'Bekræftede tilfælde i alt' = col_double(),
                                        'Døde' = col_double(),
                                        'Indlæggelser' = col_double()
                                       ))
@@ -119,7 +119,7 @@ interested in those. So we select the columns we care about.
 data <- data %>% rename(region = 'Region',
                         date = 'Prøvetagningsdato',
                         gender = 'Køn', # This might be wrong, because it could also be 'sex'. However, we are going to aggregate it
-                        cases = 'Bekræftede tilfælde',
+                        cases = 'Bekræftede tilfælde i alt',
                         deaths = 'Døde',
                         hospitalizations = 'Indlæggelser')
 
@@ -245,9 +245,9 @@ This needs to be read, like the other data sets
 ```{r}
 data <- read_data(file, col_types=cols('Kommune' = col_double(), # This will need fixing later
                                        'Kommunenavn' = col_factor(),
-                                       'Bekræftede tilfælde' = col_double(),
+                                       'Bekræftede tilfælde i alt' = col_double(),
                                        'Incidens' = col_double(),
-                                       'Bekræftede tilfælde de seneste 7 dage' = col_double(),
+                                       'Bekræftede tilfælde i alt de seneste 7 dage' = col_double(),
                                        'Incidens de seneste 7 dage' = col_double(),
                                        'Antal testede personer' = col_double(),
                                        'Testestede pr. 100.000' = col_double(),
@@ -263,7 +263,7 @@ And like before, this needs renaming
 data <- data %>% rename(lau1 = 'Kommune',
                         name = 'Kommunenavn',
                         incidence = 'Incidens de seneste 7 dage',
-                        cases = 'Bekræftede tilfælde de seneste 7 dage',
+                        cases = 'Bekræftede tilfælde i alt de seneste 7 dage',
                         tested = 'Antal testede personer',
                         tested_100k = 'Testestede pr. 100.000',
                         tested_1w = 'Testede de seneste 7 dage',

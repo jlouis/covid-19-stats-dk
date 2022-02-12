@@ -1,6 +1,6 @@
 ---
 title: "Core Covid-19 Stats for Denmark"
-date: 2022-01-31
+date: 2022-02-11
 output:
   html_document:
     toc: true
