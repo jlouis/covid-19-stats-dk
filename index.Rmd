@@ -438,10 +438,10 @@ plot_regions <- function(p, title, subtitle) {
 
 p <- ggplot(regions, aes(x=date, y=cases))
 plot_regions(p, "Regional split of cases, DK",
-                "Copenhagen-general area (Hovedstaden) contributes most of the noise")
+                "These numbers are somewhat dodgy because of changes in test strategy")
 ```
 
-We can also visualize regional new hospitalizations:
+We can also visualize regional new hospitalizations and deaths:
 
 ```{r regional-hospitalizations}
 p <- ggplot(regions, aes(x=date, y=hospitalizations))
@@ -449,11 +449,22 @@ p + geom_point(aes(color=region), size=.5) +
     facet_grid(rows=vars(region)) +
     scale_colour_brewer(palette="Set2") +
     labs(title = "Regional split of Hospitalizations, DK",
-         subtitle = "Copenhagen-general area (Hovedstaden) contributes most of the noise",
+         subtitle = "Data provides an upper bound on the actual hospitalization count",
          caption = "Source: ssi.dk",
          x = "Date",
          y = "New Hospitalizations")
+```
 
+```{r regional-deaths}
+p <- ggplot(regions, aes(x=date, y=deaths))
+p + geom_point(aes(color=region), size=.5) +
+    facet_grid(rows=vars(region)) +
+    scale_colour_brewer(palette="Set2") +
+    labs(title = "Regional split of Deaths, DK",
+         subtitle = "Data provides an upper bound on the actual death count",
+         caption = "Source: ssi.dk",
+         x = "Date",
+         y = "New Deaths")
 ```
 
 ## Weekly data

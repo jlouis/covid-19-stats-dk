@@ -627,19 +627,29 @@ plot_day_of_week(p, &quot;Some days of the week has clear over/under-representat
 
 p &lt;- ggplot(regions, aes(x=date, y=cases))
 plot_regions(p, &quot;Regional split of cases, DK&quot;,
-                &quot;Copenhagen-general area (Hovedstaden) contributes most of the noise&quot;)</code></pre>
+                &quot;These numbers are somewhat dodgy because of changes in test strategy&quot;)</code></pre>
 <p><img src="index_files/figure-html/regional-cases-1.png" width="672" /></p>
-<p>We can also visualize regional new hospitalizations:</p>
+<p>We can also visualize regional new hospitalizations and deaths:</p>
 <pre class="r"><code>p &lt;- ggplot(regions, aes(x=date, y=hospitalizations))
 p + geom_point(aes(color=region), size=.5) +
     facet_grid(rows=vars(region)) +
     scale_colour_brewer(palette=&quot;Set2&quot;) +
     labs(title = &quot;Regional split of Hospitalizations, DK&quot;,
-         subtitle = &quot;Copenhagen-general area (Hovedstaden) contributes most of the noise&quot;,
+         subtitle = &quot;Data provides an upper bound on the actual hospitalization count&quot;,
          caption = &quot;Source: ssi.dk&quot;,
          x = &quot;Date&quot;,
          y = &quot;New Hospitalizations&quot;)</code></pre>
 <p><img src="index_files/figure-html/regional-hospitalizations-1.png" width="672" /></p>
+<pre class="r"><code>p &lt;- ggplot(regions, aes(x=date, y=deaths))
+p + geom_point(aes(color=region), size=.5) +
+    facet_grid(rows=vars(region)) +
+    scale_colour_brewer(palette=&quot;Set2&quot;) +
+    labs(title = &quot;Regional split of Deaths, DK&quot;,
+         subtitle = &quot;Data provides an upper bound on the actual death count&quot;,
+         caption = &quot;Source: ssi.dk&quot;,
+         x = &quot;Date&quot;,
+         y = &quot;New Deaths&quot;)</code></pre>
+<p><img src="index_files/figure-html/regional-deaths-1.png" width="672" /></p>
 </div>
 </div>
 <div id="weekly-data" class="section level2">
