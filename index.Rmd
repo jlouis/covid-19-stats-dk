@@ -1,6 +1,6 @@
 ---
 title: "Covid-19 Stats for Denmark"
-date: 2022-03-22
+date: 2022-04-06
 output:
   html_document:
     toc: true
@@ -40,7 +40,7 @@ general form `YYYY-MM-DD`. Lets set up a name for the current directory we
 want to grab data from
 
 ```{r constants}
-date <- "2022-03-22"
+date <- "2022-04-06"
 ```
 
 ## Ingesting data
@@ -519,13 +519,13 @@ plot_age_cases <- function(p, title, subtitle) {
 The above function allows us to plot cases per age group, and tested per age group
 
 ```{r age-group-cases}
-p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=cases_100k, height=0.8))
-plot_age_cases(p, "Weekly cases split per age group, DK", "Schools were closed on 15th Dec 2021, reopened in Jan 2022")
+# p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=cases_100k, height=0.8))
+# plot_age_cases(p, "Weekly cases split per age group, DK", "Schools were closed on 15th Dec 2021, reopened in Jan 2022")
 ```
 
 ```{r age-group-tests}
-p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=tested_100k, height=0.8))
-plot_age_cases(p, "Weekly tests split per age group, DK", "Schools were closed on 15th Dec 2021, reopened in Jan 2022")
+# p <- ggplot(weekly, aes(x=week, y=ageGroup, fill=tested_100k, height=0.8))
+# plot_age_cases(p, "Weekly tests split per age group, DK", "Schools were closed on 15th Dec 2021, reopened in Jan 2022")
 ```
 
 ## Muncipality data
@@ -565,17 +565,17 @@ muncipalities$rate
 ```
 
 ```{r muncipality-rate-overview, fig.height=12}
-ggplot(muncipalities %>% mutate(name = fct_reorder(name, rate)), aes(x=name, y=rate)) +
-  geom_bar(stat='identity', aes(fill=rate_type), width=.5)  +
-  scale_colour_brewer(palette="Set2") +
-  geom_hline(yintercept=mean(muncipalities$rate), linetype=2) +
-  labs(title= "Diverging Bars Plot, DK",
-       subtitle = "Cases/Tested ratio over the last 7 days",
-       fill = "rate",
-       x = "Name",
-       y = "Rate",
-       caption = "Source: ssi.dk") +
-  coord_flip()
+#ggplot(muncipalities %>% mutate(name = fct_reorder(name, rate)), aes(x=name, y=rate)) +
+#  geom_bar(stat='identity', aes(fill=rate_type), width=.5)  +
+#  scale_colour_brewer(palette="Set2") +
+#  geom_hline(yintercept=mean(muncipalities$rate), linetype=2) +
+#  labs(title= "Diverging Bars Plot, DK",
+#       subtitle = "Cases/Tested ratio over the last 7 days",
+#       fill = "rate",
+#       x = "Name",
+#       y = "Rate",
+#       caption = "Source: ssi.dk") +
+#  coord_flip()
 ```
 
 ### Analyzing infections over population counts
@@ -628,6 +628,6 @@ Summarize:
 
 ```{r muncipality-summary}
 summary(muncipalities$rate)
-d <- density(muncipalities$rate)
-plot(d)
+#d <- density(muncipalities$rate)
+#plot(d)
 ```
