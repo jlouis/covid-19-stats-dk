@@ -10,11 +10,11 @@
 
 
 
-<meta name="date" content="2022-06-21" />
+<meta name="date" content="2022-08-23" />
 
 <title>Covid-19 Stats for Denmark</title>
 
-<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.14/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -265,7 +265,7 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">Covid-19 Stats for Denmark</h1>
-<h4 class="date">2022-06-21</h4>
+<h4 class="date">2022-08-23</h4>
 
 </div>
 
@@ -334,7 +334,7 @@ library(lubridate)</code></pre>
 <p>SSI’s data is in a zip file. We unpack this zip file into a directory
 of the general form <code>YYYY-MM-DD</code>. Lets set up a name for the
 current directory we want to grab data from</p>
-<pre class="r"><code>date &lt;- &quot;2022-06-21&quot;</code></pre>
+<pre class="r"><code>date &lt;- &quot;2022-08-23&quot;</code></pre>
 </div>
 <div id="ingesting-data" class="section level2">
 <h2>Ingesting data</h2>
@@ -402,7 +402,7 @@ of Denmark.</li>
                                       ))</code></pre>
 <pre><code>## ℹ Using &quot;&#39;,&#39;&quot; as decimal and &quot;&#39;.&#39;&quot; as grouping mark. Use `read_delim()` for more control.</code></pre>
 <pre class="r"><code>data</code></pre>
-<pre><code>## # A tibble: 8,111 × 9
+<pre><code>## # A tibble: 8,739 × 9
 ##    Region      Prøvetagningsdato Køn   `Bekræftede tilfælde…`  Døde Indlæggelser
 ##    &lt;fct&gt;       &lt;date&gt;            &lt;fct&gt;                  &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt;
 ##  1 Sjælland    2020-02-26        M                          1     0            0
@@ -415,7 +415,7 @@ of Denmark.</li>
 ##  8 Hovedstaden 2020-03-03        F                          1     0            0
 ##  9 Hovedstaden 2020-03-03        M                          3     0            1
 ## 10 Hovedstaden 2020-03-04        M                          2     0            0
-## # … with 8,101 more rows, and 3 more variables: `Kummuleret antal døde` &lt;dbl&gt;,
+## # … with 8,729 more rows, and 3 more variables: `Kummuleret antal døde` &lt;dbl&gt;,
 ## #   `Kummuleret antal bekræftede tilfælde` &lt;dbl&gt;,
 ## #   `Kummuleret antal indlæggelser` &lt;dbl&gt;</code></pre>
 <p>We certainly don’t want to work with danish-named columns. Rather, we
@@ -435,7 +435,7 @@ care about.</p>
 # Cut the cumulative columns away
 data &lt;- data %&gt;% select(region, date, gender, cases, deaths, hospitalizations)
 data</code></pre>
-<pre><code>## # A tibble: 8,111 × 6
+<pre><code>## # A tibble: 8,739 × 6
 ##    region      date       gender cases deaths hospitalizations
 ##    &lt;fct&gt;       &lt;date&gt;     &lt;fct&gt;  &lt;dbl&gt;  &lt;dbl&gt;            &lt;dbl&gt;
 ##  1 Sjælland    2020-02-26 M          1      0                0
@@ -448,17 +448,17 @@ data</code></pre>
 ##  8 Hovedstaden 2020-03-03 F          1      0                0
 ##  9 Hovedstaden 2020-03-03 M          3      0                1
 ## 10 Hovedstaden 2020-03-04 M          2      0                0
-## # … with 8,101 more rows</code></pre>
-<p>Provide a low cut-off. We are interested in the recent period with
-Omicron, rather than the full duration of Covid-19.</p>
-<pre class="r"><code>lo_cutoff &lt;- &#39;2021-09-01&#39;</code></pre>
+## # … with 8,729 more rows</code></pre>
+<p>Provide a low cut-off. We are interested in the recent period over
+the summer rather than what has happened historically.</p>
+<pre class="r"><code>lo_cutoff &lt;- &#39;2022-05-01&#39;</code></pre>
 <p>The high end of that cutoff, we set to two days before the maximal
 date in our data set</p>
 <pre class="r"><code>hi_cutoff &lt;- max(data$date) - days(2)</code></pre>
 <p>Rationale: News outlets generally report a cumulative count increase
 . The actual date of testing is often lagging by 24h to 48h. We are
 interested in getting the right test-date, even if it means we have a 2
-days lag. Hence, we assume that recent data are still “forming”.</p>
+days lag. Hence, we assume that recent data are still forming.</p>
 <p>A typical example is that the count for the current date is very
 close to 0, as no tests have come in yet. In 2-3 days time, this number
 rises to the right value, as data is retroactively updated.</p>
@@ -470,20 +470,20 @@ some other date, and this will skew any kind of trend-line attempt.</p>
 # Put this into the summary
 summary &lt;- data
 summary</code></pre>
-<pre><code>## # A tibble: 2,910 × 6
+<pre><code>## # A tibble: 1,120 × 6
 ##    region      date       gender cases deaths hospitalizations
 ##    &lt;fct&gt;       &lt;date&gt;     &lt;fct&gt;  &lt;dbl&gt;  &lt;dbl&gt;            &lt;dbl&gt;
-##  1 Hovedstaden 2021-09-01 F        215      0                7
-##  2 Midtjylland 2021-09-01 F         66      0                0
-##  3 Nordjylland 2021-09-01 F         22      0                4
-##  4 Sjælland    2021-09-01 F         43      0                0
-##  5 Syddanmark  2021-09-01 F         40      0                1
-##  6 Hovedstaden 2021-09-01 M        185      2                8
-##  7 Midtjylland 2021-09-01 M         49      0                1
-##  8 Nordjylland 2021-09-01 M         16      1                2
-##  9 Sjælland    2021-09-01 M         39      0                3
-## 10 Syddanmark  2021-09-01 M         40      0                1
-## # … with 2,900 more rows</code></pre>
+##  1 Hovedstaden 2022-05-01 F        147      2               11
+##  2 Midtjylland 2022-05-01 F         80      0                1
+##  3 Nordjylland 2022-05-01 F         48      2                1
+##  4 Sjælland    2022-05-01 F         81      0                8
+##  5 Syddanmark  2022-05-01 F         87      1                6
+##  6 Hovedstaden 2022-05-01 M        108      2                6
+##  7 Midtjylland 2022-05-01 M         66      1                6
+##  8 Nordjylland 2022-05-01 M         31      1                2
+##  9 Sjælland    2022-05-01 M         68      1                3
+## 10 Syddanmark  2022-05-01 M         57      0                3
+## # … with 1,110 more rows</code></pre>
 </div>
 <div id="weekly-key-figures-split-by-age" class="section level3">
 <h3>Weekly key figures split by age</h3>
@@ -509,7 +509,7 @@ interest</p>
                         tested = &#39;Antal testede&#39;,
                         cases = &#39;Antal positive&#39;)
 data</code></pre>
-<pre><code>## # A tibble: 1,102 × 7
+<pre><code>## # A tibble: 1,183 × 7
 ##    week     ageGroup tested_100k cases_100k hospitalized_100k tested cases
 ##    &lt;chr&gt;    &lt;fct&gt;          &lt;dbl&gt;      &lt;dbl&gt;             &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
 ##  1 2020-U04 00-02              0          0                 0      0     0
@@ -522,7 +522,7 @@ data</code></pre>
 ##  8 2020-U04 65-79              0          0                 0      0     0
 ##  9 2020-U04 80+                0          0                 0      0     0
 ## 10 2020-U05 65-79              0          0                 0      1     0
-## # … with 1,092 more rows</code></pre>
+## # … with 1,173 more rows</code></pre>
 <p>Take a look at the <code>week</code> column. It reports a year, and a
 week number. We’ll need to handle this, by converting this into a date.
 We’ll do that by defining a fixup function. If we have a string such as
@@ -542,9 +542,7 @@ string into <code>2020-W04-1</code>, then send it through
 the fixup, setting each value in the table to be the fixup’ed value.
 While here, also cut off the older values since we are mostly interested
 in the recent data.</p>
-<pre class="r"><code>lo_cutoff &lt;- &quot;2021-11-01&quot;
-
-# Apply this to the data set
+<pre class="r"><code># Apply this to the data set
 data &lt;- data %&gt;% mutate(week = fixup_week(week))
 data &lt;- data %&gt;% filter(week &gt;= lo_cutoff)</code></pre>
 <p>Finally, lets use a good name for this dataset (tibble):</p>
@@ -583,16 +581,16 @@ data</code></pre>
 <pre><code>## # A tibble: 99 × 11
 ##     lau1 name       `Bekræftede ti…` Incidens cases incidence tested tested_100k
 ##    &lt;dbl&gt; &lt;fct&gt;                 &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;       &lt;dbl&gt;
-##  1   411 &quot;&quot;                        0       NA     0        0      93      102000
-##  2   101 &quot;Københav…           375437    58286  1025      159. 663376      103000
-##  3   147 &quot;Frederik…            58480    56410   222      214. 113637      110000
-##  4   151 &quot;Ballerup&quot;            28242    57042    77      156.  50634      102000
-##  5   153 &quot;Brøndby&quot;             21328    59269    54      150.  36594      102000
-##  6   155 &quot;Dragør&quot;               8265    56617    24      164.  14712      101000
-##  7   157 &quot;Gentofte&quot;            40517    54655   149      201   77016      104000
-##  8   159 &quot;Gladsaxe&quot;            39753    57256   118      170   72921      105000
-##  9   161 &quot;Glostrup&quot;            13595    57982    37      158.  24721      105000
-## 10   163 &quot;Herlev&quot;              17337    60185    41      142.  30103      105000
+##  1   411 &quot;&quot;                        0       NA     0       0       93      101000
+##  2   101 &quot;Københav…           386628    60035   620      96.3 665637      103000
+##  3   147 &quot;Frederik…            60543    58405   110     106.  114170      110000
+##  4   151 &quot;Ballerup&quot;            29083    58604    58     117.   50805      102000
+##  5   153 &quot;Brøndby&quot;             22119    61087    45     124.   36749      101000
+##  6   155 &quot;Dragør&quot;               8485    58025    13      88.9  14744      101000
+##  7   157 &quot;Gentofte&quot;            41689    56059    73      98.2  77321      104000
+##  8   159 &quot;Gladsaxe&quot;            40965    58866    83     119.   73189      105000
+##  9   161 &quot;Glostrup&quot;            14065    59836    39     166.   24833      106000
+## 10   163 &quot;Herlev&quot;              17912    62132    43     149.   30239      105000
 ## # … with 89 more rows, and 3 more variables: tested_1w &lt;dbl&gt;,
 ## #   tested_100k_1w &lt;dbl&gt;, population &lt;dbl&gt;</code></pre>
 <pre class="r"><code>muncipalities &lt;- data</code></pre>
@@ -674,8 +672,8 @@ plot_country(p, &quot;Trendline for Covid-19: new deaths in Denmark&quot;, &quot
 <p>The next plot computes the <em>change</em> from the day before to the
 next day. A positive number means “There were this many more cases
 today.” A negative number means “There were this fewer cases today.”
-This shows how data is getting more noisy once Omicron takes over and
-more tests are being made.</p>
+This shows how data is getting more noisy as the number of test cases
+increase.</p>
 <p>As we shall see, this noise mostly comes from a single region in
 Denmark.</p>
 <pre class="r"><code># Lagged data computes the difference to the day before.
@@ -686,7 +684,7 @@ plot_country_lag &lt;- function(p, title, caption) {
 }
 
 p &lt;- ggplot(country, aes(x=date, y=(cases - previous_cases), color=weekday))
-plot_country_lag(p, &quot;As Omicron took over, noise entered data in Denmark&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
+plot_country_lag(p, &quot;Noise increases with number of cases&quot;, &quot;Source: ssi.dk&quot;)</code></pre>
 <pre><code>## Warning: Removed 1 rows containing missing values (geom_point).</code></pre>
 <p><img src="index_files/figure-html/country-lagged-1.png" width="672" /></p>
 <p>Another way of plotting this is to plot the number of cases today on
@@ -697,10 +695,10 @@ plot_country_lag(p, &quot;Delta change on cases&quot;, &quot;Source: ssi.dk&quot
   geom_abline(slope=1, color=&#39;gray&#39;, linetype=2)</code></pre>
 <pre><code>## Warning: Removed 1 rows containing missing values (geom_point).</code></pre>
 <p><img src="index_files/figure-html/country-lagged-scatter-1.png" width="672" /></p>
-<p>The fact Monday and Sunday are always above the dashed line means
-they always provide an increase in case count compared to other days.
-The days where these numbers tend to be entered into the database are
-Monday and Tuesday.</p>
+<p>The fact Monday and Sunday are often above the dashed line means they
+always provide an increase in case count compared to other days. The
+days where these numbers tend to be entered into the database are Monday
+and Tuesday.</p>
 <p>Because there are some clear day-of-week structure in the data set,
 it’s worth looking a bit into this. In particular:</p>
 <ul>
@@ -726,8 +724,8 @@ country</p>
 <pre class="r"><code>regions &lt;- summary %&gt;%
   group_by(date, region) %&gt;%
   summarize(cases = sum(cases), deaths = sum(deaths), hospitalizations = sum(hospitalizations))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;date&#39;. You can override using the
-## `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;date&#39;. You can override using the `.groups`
+## argument.</code></pre>
 <pre class="r"><code>regions &lt;- regions %&gt;% mutate(weekday = lubridate::wday(date, label=TRUE), order_by=date)</code></pre>
 <div id="regional-visualizations" class="section level3">
 <h3>Regional visualizations</h3>
@@ -832,23 +830,23 @@ score, then plot a diverging bars plot for the data.</p>
 muncipalities$rate_z &lt;- round(muncipalities$rate - mean(muncipalities$rate), 5)
 muncipalities$rate_type &lt;- ifelse(muncipalities$rate_z &lt; 0, &quot;Below mean&quot;, &quot;Above mean&quot;)
 muncipalities$rate</code></pre>
-<pre><code>##  [1]        NaN 0.18167317 0.22653061 0.22254335 0.16770186 0.22018349
-##  [7] 0.23763955 0.22097378 0.16371681 0.16734694 0.17647059 0.17903226
-## [13] 0.13407821 0.21039604 0.20795107 0.20606061 0.16441441 0.28248588
-## [19] 0.22848665 0.24836601 0.21351351 0.17202572 0.16120577 0.18181818
-## [25] 0.21186441 0.29971182 0.22020725 0.22849462 0.20286885 0.14232210
-## [31] 0.22253923 0.24358974 0.18581907 0.15048544 0.20450607 0.20175439
-## [37] 0.12500000 0.14942529 0.12238325 0.24409449 0.13253012 0.26229508
-## [43] 0.13986014 0.16689281 0.14003945 0.25783972 0.15139442 0.18584071
-## [49] 0.18390805 0.21646341 0.28873239 0.21893491 0.18692810 0.17913043
-## [55] 0.19354839 0.24074074 0.19642857 0.12444444 0.20869565 0.16383308
-## [61] 0.21276596 0.16774194 0.18181818 0.27000000 0.06609195 0.20202020
-## [67] 0.17681159 0.21853147 0.16524217 0.15533981 0.17006803 0.17251462
-## [73] 0.12162162 0.18803419 0.23762376 0.16666667 0.24918033 0.35051546
-## [79] 0.24489796 0.21194879 0.00000000 0.28613569 0.21231343 0.12169312
-## [85] 0.19078947 0.17142857 0.12121212 0.22480620 0.18396226 0.23966942
-## [91] 0.19411765 0.13377926 0.21367521 0.25000000 0.14285714 0.21951220
-## [97] 0.20437956 0.16537468 0.21841542</code></pre>
+<pre><code>##  [1]        NaN 0.15210991 0.15873016 0.16111111 0.15410959 0.20000000
+##  [7] 0.13957935 0.17547569 0.21910112 0.17991632 0.15311005 0.17904762
+## [13] 0.14788732 0.17834395 0.17492711 0.17021277 0.14956012 0.20652174
+## [19] 0.10644258 0.14500000 0.20202020 0.10634328 0.13656388 0.17982456
+## [25] 0.14509804 0.18006431 0.12249443 0.21142857 0.18461538 0.14251208
+## [31] 0.14825175 0.17307692 0.13526570 0.15909091 0.16587678 0.22740525
+## [37] 0.20370370 0.20000000 0.18750000 0.16494845 0.22222222 0.16666667
+## [43] 0.12909836 0.19560878 0.19254658 0.16209476 0.22432432 0.16666667
+## [49] 0.23684211 0.18536585 0.15254237 0.08400000 0.15760599 0.19204152
+## [55] 0.21348315 0.08527132 0.36363636 0.24752475 0.19767442 0.18181818
+## [61] 0.19163763 0.23592814 0.22222222 0.15405405 0.15838509 0.22619048
+## [67] 0.20817844 0.22444890 0.22585034 0.19472247 0.22756827 0.24041812
+## [73] 0.27835052 0.24324324 0.22433460 0.21978022 0.27863777 0.25688073
+## [79] 0.20316869 0.27463054 0.04081633 0.26077098 0.22524565 0.22826087
+## [85] 0.14084507 0.23966942 0.17127072 0.18604651 0.21276596 0.24910180
+## [91] 0.20080321 0.22680412 0.13978495 0.14285714 0.20833333 0.16867470
+## [97] 0.21454545 0.16531027 0.18114603</code></pre>
 <pre class="r"><code>#ggplot(muncipalities %&gt;% mutate(name = fct_reorder(name, rate)), aes(x=name, y=rate)) +
 #  geom_bar(stat=&#39;identity&#39;, aes(fill=rate_type), width=.5)  +
 #  scale_colour_brewer(palette=&quot;Set2&quot;) +
@@ -877,7 +875,7 @@ query on <code>FOLK1AM</code> in their data bank:</p>
 popcount &lt;- read_data_2(&quot;./data/DS/2022121185617360647690FOLK1AM68563293012.csv&quot;)</code></pre>
 <pre><code>## ℹ Using &quot;&#39;,&#39;&quot; as decimal and &quot;&#39;.&#39;&quot; as grouping mark. Use `read_delim()` for more control.</code></pre>
 <pre><code>## Rows: 103 Columns: 4
-## ── Column specification ────────────────────────────────────────────────────────
+## ── Column specification ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ## Delimiter: &quot;;&quot;
 ## chr (3): X1, X2, X3
 ## dbl (1): X4
@@ -909,16 +907,16 @@ have liked a better key for the join, but this will do:</p>
 <pre><code>## # A tibble: 99 × 3
 ##    name            incidence popcount
 ##    &lt;chr&gt;               &lt;dbl&gt;    &lt;dbl&gt;
-##  1 &quot;&quot;                     0        NA
-##  2 &quot;København&quot;          159.   644987
-##  3 &quot;Frederiksberg&quot;      214.   103963
-##  4 &quot;Ballerup&quot;           156.    49228
-##  5 &quot;Brøndby&quot;            150.    35535
-##  6 &quot;Dragør&quot;             164.    14602
-##  7 &quot;Gentofte&quot;           201     74154
-##  8 &quot;Gladsaxe&quot;           170     69321
-##  9 &quot;Glostrup&quot;           158.    23519
-## 10 &quot;Herlev&quot;             142.    28861
+##  1 &quot;&quot;                    0         NA
+##  2 &quot;København&quot;          96.3   644987
+##  3 &quot;Frederiksberg&quot;     106.    103963
+##  4 &quot;Ballerup&quot;          117.     49228
+##  5 &quot;Brøndby&quot;           124.     35535
+##  6 &quot;Dragør&quot;             88.9    14602
+##  7 &quot;Gentofte&quot;           98.2    74154
+##  8 &quot;Gladsaxe&quot;          119.     69321
+##  9 &quot;Glostrup&quot;          166.     23519
+## 10 &quot;Herlev&quot;            149.     28861
 ## # … with 89 more rows</code></pre>
 <p>Now, test correlation via Pearson:</p>
 <pre class="r"><code>plot(muncipalities$incidence, muncipalities$popcount)</code></pre>
@@ -928,13 +926,13 @@ have liked a better key for the join, but this will do:</p>
 ##  Pearson&#39;s product-moment correlation
 ## 
 ## data:  muncipalities$incidence and muncipalities$popcount
-## t = 0.94249, df = 92, p-value = 0.3484
+## t = 0.27074, df = 92, p-value = 0.7872
 ## alternative hypothesis: true correlation is not equal to 0
 ## 95 percent confidence interval:
-##  -0.1069460  0.2945703
+##  -0.1754043  0.2295202
 ## sample estimates:
 ##        cor 
-## 0.09778994</code></pre>
+## 0.02821543</code></pre>
 <p>Clearly, this argues there are no strong connection between
 population count, and the incidence in a given muncipality.</p>
 <p>Analyzing the rate shows there’s a connection between it and
@@ -946,17 +944,17 @@ incidence, but this is more expected:</p>
 ##  Pearson&#39;s product-moment correlation
 ## 
 ## data:  muncipalities$incidence and muncipalities$rate
-## t = 6.7672, df = 96, p-value = 1.037e-09
+## t = 7.8372, df = 96, p-value = 6.269e-12
 ## alternative hypothesis: true correlation is not equal to 0
 ## 95 percent confidence interval:
-##  0.4168880 0.6890242
+##  0.4865189 0.7322984
 ## sample estimates:
 ##       cor 
-## 0.5682995</code></pre>
+## 0.6246398</code></pre>
 <p>Summarize:</p>
 <pre class="r"><code>summary(muncipalities$rate)</code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA&#39;s 
-##  0.0000  0.1657  0.1938  0.1938  0.2208  0.3505       1</code></pre>
+## 0.04082 0.15780 0.18499 0.18751 0.22161 0.36364       1</code></pre>
 <pre class="r"><code>#d &lt;- density(muncipalities$rate)
 #plot(d)</code></pre>
 </div>
