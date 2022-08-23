@@ -3,9 +3,9 @@ library(tidyverse)
 library(lubridate)
 
 # ---- cutoffs
-low_cutoff <- "2021-12-01"
+low_cutoff <- "2022-05-01"
 # ---- dates
-rt_date <- "2022_02_01"
+rt_date <- "2022_08_23"
 
 # ---- where_we_are
 path <- "./data/core"
@@ -43,7 +43,7 @@ municipality
 high_cutoff <- max(municipality$date) - days(2)
 
 # ---- m_split_off_islands
-islands <- c("Christiansø", "Fanø", "Læsø", "Samsø")
+islands <- c("Christiansø", "Fanø", "Læsø", "Samsø", "Ærø")
 municipality_islands <- municipality %>% filter(Municipality %in% islands)
 municipality_ml <- municipality %>% filter(!Municipality %in% islands)
 
@@ -53,7 +53,7 @@ p <- ggplot(municipality_ml %>% filter(date > low_cutoff, date <= high_cutoff, M
 p + geom_tile() +
     scale_fill_continuous(type = "viridis") +
     labs(title = "Positive Rate split by Municipality (Excluding Islands)",
-         subtitle = "Christmas contributes to positive rate",
+         subtitle = "",
          caption = "Source: ssi.dk",
          x="Date",
          y = "Municipality")
@@ -64,7 +64,7 @@ p <- ggplot(municipality_islands %>% filter(date > low_cutoff, date <= high_cuto
 p + geom_tile() +
     scale_fill_continuous(type = "viridis") +
     labs(title = "Positive Rate split by Municipality (Islands only)",
-         subtitle = "Christmas contributes to positive rate",
+         subtitle = "",
          caption = "Source: ssi.dk",
          x="Date",
          y = "Municipality")
@@ -80,7 +80,7 @@ p + geom_point(alpha=.5) +
 
 m_summary <- m_summary %>% pivot_longer(-date, names_to="type", values_to="value")
 
-p <- ggplot(m_summary %>% filter(date <= high_cutoff), aes(x=date, y=value, color=type))
+p <- ggplot(m_summary %>% filter(date > low_cutoff, date <= high_cutoff), aes(x=date, y=value, color=type))
 p + geom_point(alpha=.5) +
     geom_smooth(method = 'loess', span = .3) +
     scale_colour_brewer(palette="Set2") +
@@ -211,7 +211,7 @@ p + geom_tile() +
     scale_fill_continuous(type = "viridis") +
     facet_wrap(. ~ Region, scales="free") +
     labs(title = "Positive Rate split by Region/Municipality (Excluding Islands)",
-         subtitle = "Christmas contributes to positive rate",
+         subtitle = "",
          caption = "Source: ssi.dk",
          x="Date",
          y = "Municipality")

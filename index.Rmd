@@ -1,6 +1,6 @@
 ---
 title: "Covid-19 Stats for Denmark"
-date: 2022-06-21
+date: 2022-08-23
 output:
   html_document:
     toc: true
@@ -40,7 +40,7 @@ general form `YYYY-MM-DD`. Lets set up a name for the current directory we
 want to grab data from
 
 ```{r constants}
-date <- "2022-06-21"
+date <- "2022-08-23"
 ```
 
 ## Ingesting data
@@ -128,11 +128,11 @@ data <- data %>% select(region, date, gender, cases, deaths, hospitalizations)
 data
 ```
 
-Provide a low cut-off. We are interested in the recent period with Omicron, rather
-than the full duration of Covid-19.
+Provide a low cut-off. We are interested in the recent period over the summer rather
+than what has happened historically.
 
 ```{r}
-lo_cutoff <- '2021-09-01'
+lo_cutoff <- '2022-05-01'
 ```
 
 The high end of that cutoff, we set to two days before the maximal date in our data set
@@ -144,7 +144,7 @@ hi_cutoff <- max(data$date) - days(2)
 Rationale: News outlets generally report a cumulative count increase . The
 actual date of testing is often lagging by 24h to 48h. We are interested in
 getting the right test-date, even if it means we have a 2 days lag. Hence, we
-assume that recent data are still "forming".
+assume that recent data are still forming.
 
 A typical example is that the count for the current date is very close to 0, as
 no tests have come in yet. In 2-3 days time, this number rises to the right
@@ -219,8 +219,6 @@ to be the fixup'ed value. While here, also cut off the older values since we are
 in the recent data.
 
 ```{r, warning = FALSE}
-lo_cutoff <- "2021-11-01"
-
 # Apply this to the data set
 data <- data %>% mutate(week = fixup_week(week))
 data <- data %>% filter(week >= lo_cutoff)
@@ -359,8 +357,8 @@ plot_country(p, "Trendline for Covid-19: new deaths in Denmark", "Source: ssi.dk
 
 The next plot computes the *change* from the day before to the next day. A positive
 number means "There were this many more cases today." A negative number means "There
-were this fewer cases today." This shows how data is getting more noisy once Omicron
-takes over and more tests are being made.
+were this fewer cases today." This shows how data is getting more noisy as the number
+of test cases increase.
 
 As we shall see, this noise mostly comes from a single region in Denmark.
 
@@ -373,7 +371,7 @@ plot_country_lag <- function(p, title, caption) {
 }
 
 p <- ggplot(country, aes(x=date, y=(cases - previous_cases), color=weekday))
-plot_country_lag(p, "As Omicron took over, noise entered data in Denmark", "Source: ssi.dk")
+plot_country_lag(p, "Noise increases with number of cases", "Source: ssi.dk")
 ```
 
 Another way of plotting this is to plot the number of cases today on one axis, and the previous
@@ -385,7 +383,7 @@ plot_country_lag(p, "Delta change on cases", "Source: ssi.dk") +
   geom_abline(slope=1, color='gray', linetype=2)
 ```
 
-The fact Monday and Sunday are always above the dashed line means they always provide an
+The fact Monday and Sunday are often above the dashed line means they always provide an
 increase in case count compared to other days. The days where these numbers tend to be
 entered into the database are Monday and Tuesday.
 
